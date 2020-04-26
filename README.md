@@ -1,6 +1,6 @@
 # Holsona
 
-### Computational Mind Mapping Software
+### Associative Information System
 
 This project is the backend for the Holsona application.
 
