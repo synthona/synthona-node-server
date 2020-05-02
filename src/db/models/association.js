@@ -8,52 +8,62 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
-        comment: 'The Association ID'
+        comment: 'The Association ID',
       },
       nodeId: {
         type: DataTypes.INTEGER,
         comment: 'The Node which is being associated',
-        unique: false
+        unique: false,
+      },
+      nodeType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        comment: 'The node type',
       },
       linkedNode: {
         type: DataTypes.INTEGER,
         comment: 'the node being linked to',
-        unique: false
+        unique: false,
+      },
+      linkedNodeType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        comment: 'The linked node type',
       },
       linkStrength: {
         type: DataTypes.INTEGER,
-        comment: 'left associated node association strength'
+        comment: 'left associated node association strength',
       },
       creator: {
         type: DataTypes.INTEGER,
         allowNull: false,
-        comment: 'The creator of the association'
+        comment: 'The creator of the association',
       },
       createdAt: {
         allowNull: false,
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: DataTypes.DATE
-      }
+        type: DataTypes.DATE,
+      },
     },
     { freezeTableName: true }
   );
-  association.associate = function(models) {
+  association.associate = function (models) {
     // associations can be defined here
     association.belongsTo(models.user, { constraints: false, foreignKey: 'creator' });
     association.belongsTo(models.node, {
       as: 'original',
       constraints: false,
       foreignKey: 'nodeId',
-      targetKey: 'id'
+      targetKey: 'id',
     });
     association.belongsTo(models.node, {
       as: 'associated',
       constraints: false,
       foreignKey: 'linkedNode',
-      targetKey: 'id'
+      targetKey: 'id',
     });
   };
   return association;

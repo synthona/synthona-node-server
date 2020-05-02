@@ -1,6 +1,7 @@
 const { Op } = require('sequelize');
 // custom code
 const { validationResult } = require('express-validator/check');
+const preview = require('../util/preview');
 // bring in data models.
 const { node, association } = require('../db/models');
 
@@ -18,21 +19,24 @@ exports.createAssociation = async (req, res, next) => {
     }
     // process request
     const nodeId = req.body.nodeId;
-    const linkedNode = req.body.linkedNode;
+    const linkedNodeId = req.body.linkedNode;
     // prevent self association
-    if (nodeId === linkedNode) {
+    if (nodeId === linkedNodeId) {
       const error = new Error('Cannot associate node to itself');
       error.statusCode = 500;
       throw error;
     }
     // check database to make sure both nodes exist
-    const nodes = await node.findAll({
+    const nodeA = await node.findOne({
       where: {
-        [Op.or]: [{ id: nodeId }, { id: linkedNode }],
+        id: nodeId,
       },
     });
-    const nodeA = nodes[0];
-    const nodeB = nodes[1];
+    const nodeB = await node.findOne({
+      where: {
+        id: linkedNodeId,
+      },
+    });
     // throw error if either is empty
     if (!nodeA || !nodeB) {
       const error = new Error('Could not find both nodes');
@@ -43,8 +47,8 @@ exports.createAssociation = async (req, res, next) => {
     const existingAssociation = await association.findAll({
       where: {
         [Op.and]: [
-          { nodeId: { [Op.or]: [linkedNode, nodeId] } },
-          { linkedNode: { [Op.or]: [linkedNode, nodeId] } },
+          { nodeId: { [Op.or]: [nodeA.id, nodeB.id] } },
+          { linkedNode: { [Op.or]: [nodeA.id, nodeB.id] } },
         ],
       },
     });
@@ -56,16 +60,26 @@ exports.createAssociation = async (req, res, next) => {
     }
     // create association
     const newAssociation = await association.create({
-      nodeId: nodeId,
-      linkedNode: linkedNode,
+      nodeId: nodeA.id,
+      nodeType: nodeA.type,
+      linkedNode: nodeB.id,
+      linkedNodeType: nodeB.type,
       linkStrength: 1,
       creator: userId,
     });
+    // re-generate any associated collection previews
+    if (nodeA.type === 'collection' && nodeB.type !== 'collection') {
+      console.log('regenerating node A preview');
+      preview.generateCollectionPreview(nodeA.id, req);
+    } else if (nodeB.type === 'collection' && nodeA.type !== 'collection') {
+      console.log('regenerating node B preview');
+      preview.generateCollectionPreview(nodeB.id, req);
+    }
     // load new association with node info for the linked node
     const result = await association.findOne({
       where: {
         nodeId: nodeId,
-        linkedNode: linkedNode,
+        linkedNode: linkedNodeId,
       },
       attributes: ['id', 'nodeId'],
       include: [
@@ -80,7 +94,7 @@ exports.createAssociation = async (req, res, next) => {
       ],
     });
     // re-apply baseURL if the type is image
-    if (result.associated.type && result.associated.local) {
+    if (result.associated.type === 'image' && result.associated.local) {
       const fullUrl = result.associated.summary
         ? req.protocol + '://' + req.get('host') + '/' + result.associated.summary
         : null;
@@ -221,7 +235,15 @@ exports.getAssociations = async (req, res, next) => {
       limit: perPage,
       //TODO: sort by linkStrength once that is working?
       order: [['updatedAt', 'DESC']],
-      attributes: ['id', 'nodeId', 'linkedNode', 'linkStrength', 'updatedAt'],
+      attributes: [
+        'id',
+        'nodeId',
+        'nodeType',
+        'linkedNode',
+        'linkedNodeType',
+        'linkStrength',
+        'updatedAt',
+      ],
       // include whichever node is the associated one for
       include: [
         {
@@ -296,12 +318,18 @@ exports.deleteAssociation = async (req, res, next) => {
           { linkedNode: { [Op.or]: [nodeA, nodeB] } },
         ],
       },
-      attributes: ['id', 'nodeId', 'linkedNode'],
+      attributes: ['id', 'nodeId', 'nodeType', 'linkedNode', 'linkedNodeType'],
     });
     if (!result) {
       const error = new Error('Could not find association');
       error.statusCode = 404;
       throw error;
+    }
+    // re-generate any associated collection previews
+    if (result.nodeType === 'collection' && result.linkedNodeType !== 'collection') {
+      preview.generateCollectionPreview(result.nodeId, req);
+    } else if (result.linkedNodeType === 'collection' && result.nodeType !== 'collection') {
+      preview.generateCollectionPreview(result.linkedNode, req);
     }
     // set deletedId
     var deletedId = nodeB;

@@ -186,13 +186,11 @@ exports.refreshAuth = async (req, res, next) => {
     const account = await user.findOne({
       where: { id: uid },
     });
-
     if (!account) {
       const error = new Error('A user with this uid could not be found');
       error.statusCode = 401;
       throw error;
     }
-
     // note: right here is where i would probably send a refresh token??? or
     // i could just send it in isAuth??
 

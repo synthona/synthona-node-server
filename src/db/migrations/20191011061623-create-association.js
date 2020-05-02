@@ -7,36 +7,48 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
-        comment: 'The Association ID'
+        comment: 'The Association ID',
       },
       nodeId: {
         type: Sequelize.INTEGER,
-        comment: 'The Node which is being associated'
+        comment: 'The Node which is being associated',
+        unique: false,
+      },
+      nodeType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        comment: 'The node type',
       },
       linkedNode: {
         type: Sequelize.INTEGER,
-        comment: 'the node being linked t'
+        comment: 'the node being linked to',
+        unique: false,
+      },
+      linkedNodeType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        comment: 'The linked node type',
       },
       linkStrength: {
         type: Sequelize.INTEGER,
-        comment: 'left associated node association strength'
+        comment: 'left associated node association strength',
       },
       creator: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        comment: 'The creator of the association'
+        comment: 'The creator of the association',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('association');
-  }
+  },
 };
