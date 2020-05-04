@@ -1,7 +1,6 @@
 const { Op } = require('sequelize');
 // custom code
 const { validationResult } = require('express-validator/check');
-const preview = require('../util/preview');
 // bring in data models.
 const { node, association } = require('../db/models');
 
