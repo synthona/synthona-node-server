@@ -4,12 +4,12 @@ const { node, association } = require('../db/models');
 //TODO: refactor most of these so you pass in a id to alter something
 // also think about how permissions will hook into this
 
-exports.deleteAssociations = async id => {
+exports.deleteAssociations = async (id) => {
   try {
     await association.destroy({
       where: {
-        [Op.or]: [{ nodeId: id }, { linkedNode: id }]
-      }
+        [Op.or]: [{ nodeId: id }, { linkedNode: id }],
+      },
     });
   } catch (err) {
     err.statusCode = 500;
@@ -28,9 +28,10 @@ exports.createNode = async (item, type) => {
   try {
     const result = await node.create({
       local: true,
+      hidden: false,
       type: type,
       name: 'New ' + type,
-      creator: item.creator
+      creator: item.creator,
     });
     // add association to the item
     const updatedNode = await item.setNode(result);
@@ -48,8 +49,8 @@ exports.setNodeName = async (id, name) => {
   try {
     const result = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     result.name = name;
     const updatedNode = await result.save();
@@ -66,8 +67,8 @@ exports.setNodeSummary = async (item, summary) => {
   try {
     const result = await node.findOne({
       where: {
-        id: item.id
-      }
+        id: item.id,
+      },
     });
     result.summary = summary;
     const updatedNode = await result.save();
@@ -105,8 +106,8 @@ exports.removeNode = async (item, type) => {
     const result = await node.findOne({
       where: {
         id: item.id,
-        type: type
-      }
+        type: type,
+      },
     });
     // if there is a node destroy it
     if (result) {
@@ -121,13 +122,13 @@ exports.removeNode = async (item, type) => {
 };
 
 // temporary?
-exports.markNodeView = async id => {
+exports.markNodeView = async (id) => {
   // mark the node as viewed
   try {
     const result = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     if (result.views !== null) {
       result.views++;

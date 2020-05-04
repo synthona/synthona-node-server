@@ -26,11 +26,12 @@ exports.createUrl = async (req, res, next) => {
     // create text node
     const urlNode = await node.create({
       local: true,
+      hidden: false,
       type: 'url',
       name: name,
       summary: summary,
       content: content,
-      creator: userId
+      creator: userId,
     });
     // send response
     res.status(200).json({ id: urlNode.id });

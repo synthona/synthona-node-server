@@ -10,6 +10,12 @@ exports.maintainAssociationStrengthValues = async () => {
   // up into too high of numbers. there will probably still be drift in the system
   // but it will be mitigated by this
   // =================================================================================================
+  // part II: getting by MIN won't work because many will hover at 1
+  // a better solution is to just rank every node from most to least and
+  // just iterate through relabeling them in the correct ordering, getting ride of the "space between"
+  // nodes which will emerge? although. this does kind of...lose information
+  // so it might be better to just condense it rather than relable completely. i will keep thinking about it
+  // =================================================================================================
   // // perform a maintenance check to see if related association strengths should be decremented
   // const maintenanceCheck = await association.min({
   //   where: {

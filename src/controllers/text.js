@@ -24,11 +24,12 @@ exports.createText = async (req, res, next) => {
     // create text node
     const textNode = await node.create({
       local: true,
+      hidden: false,
       type: 'text',
       name: name,
       summary: summary,
       content: content,
-      creator: userId
+      creator: userId,
     });
     // send response
     res.status(200).json({ id: textNode.id });
@@ -56,9 +57,9 @@ exports.getText = async (req, res, next) => {
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id
+        id: id,
       },
-      attributes: ['id', 'name', 'type', 'summary', 'content', 'updatedAt']
+      attributes: ['id', 'name', 'type', 'summary', 'content', 'updatedAt'],
     });
     if (!textNode) {
       const error = new Error('Could not find text node');
@@ -92,8 +93,8 @@ exports.deleteText = async (req, res, next) => {
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     if (!textNode) {
       const error = new Error('Could not find post');
@@ -129,8 +130,8 @@ exports.setText = async (req, res, next) => {
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     if (!textNode) {
       const error = new Error('Could not find text node');
@@ -166,8 +167,8 @@ exports.processText = async (req, res, next) => {
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     if (!textNode) {
       const error = new Error('Could not find text node');

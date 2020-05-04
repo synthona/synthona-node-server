@@ -28,6 +28,7 @@ exports.createNode = async (req, res, next) => {
     // create node
     const result = await node.create({
       local: local,
+      hidden: false,
       type: type,
       name: name,
       summary: summary,
@@ -67,7 +68,7 @@ exports.getNodeById = async (req, res, next) => {
       where: {
         id: id,
       },
-      attributes: ['id', 'local', 'type', 'name', 'summary', 'content', 'updatedAt'],
+      attributes: ['id', 'local', 'hidden', 'type', 'name', 'summary', 'content', 'updatedAt'],
     });
     if (!result) {
       const error = new Error('Could not find  node');
@@ -141,6 +142,7 @@ exports.updateNode = async (req, res, next) => {
     existingNode.name = req.body.name ? req.body.name : existingNode.name;
     existingNode.summary = req.body.summary ? req.body.summary : existingNode.summary;
     existingNode.content = req.body.content ? req.body.content : existingNode.content;
+    existingNode.hidden = req.body.hidden ? req.body.hidden : existingNode.hidden;
     // save and store result
     const result = await existingNode.save();
     // return result
@@ -188,6 +190,7 @@ exports.searchNodes = async (req, res, next) => {
       ];
     }
     whereStatement.creator = userId;
+    whereStatement.hidden = { [Op.not]: true };
 
     // get the total node count
     const data = await node.findAndCountAll({

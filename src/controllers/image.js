@@ -21,11 +21,12 @@ exports.createImage = async (req, res, next) => {
     // create node in the context system
     const result = await node.create({
       local: true,
+      hidden: false,
       type: 'image',
       name: originalName,
       summary: imageUrl,
       content: originalName,
-      creator: userId
+      creator: userId,
     });
     // add the baseURL of the server instance back in
     if (result.local) {
@@ -59,9 +60,9 @@ exports.getImageById = async (req, res, next) => {
     const result = await node.findOne({
       where: {
         id: id,
-        type: 'image'
+        type: 'image',
       },
-      attributes: ['id', 'local', 'name', 'type', 'summary', 'content', 'updatedAt']
+      attributes: ['id', 'local', 'name', 'type', 'summary', 'content', 'updatedAt'],
     });
     if (!result) {
       const error = new Error('Could not find image node');

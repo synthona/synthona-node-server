@@ -7,68 +7,73 @@ module.exports = {
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER,
-        comment: 'The node ID'
+        comment: 'The node ID',
       },
       local: {
         allowNull: false,
         type: Sequelize.BOOLEAN,
-        comment: 'is the node local to this instance or out on the external network?'
+        comment: 'is the node local to this instance or out on the external network?',
+      },
+      hidden: {
+        allowNull: false,
+        type: Sequelize.BOOLEAN,
+        comment: 'can it be accessed directly or only through its associations?',
       },
       type: {
         type: Sequelize.STRING,
         allowNull: false,
-        comment: 'The Node type'
+        comment: 'The Node type',
       },
       name: {
         type: Sequelize.STRING,
-        comment: 'The name of the node'
+        comment: 'The name of the node',
       },
       summary: {
         type: Sequelize.STRING(500),
-        comment: 'the summary description data'
+        comment: 'the summary description data',
       },
       content: {
         type: Sequelize.TEXT,
-        comment: 'the content'
+        comment: 'the content',
       },
       color: {
         type: Sequelize.STRING,
-        comment: 'The associated color'
+        comment: 'The associated color',
       },
       impressions: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        comment: 'The number of times a node has been sent to a Client'
+        comment: 'The number of times a node has been sent to a Client',
       },
       views: {
         type: Sequelize.INTEGER,
         allowNull: true,
-        comment: 'The number of times a node has been Accessed'
+        comment: 'The number of times a node has been Accessed',
       },
       creator: {
         type: Sequelize.INTEGER,
         allowNull: false,
-        comment: 'The creator of the node'
+        comment: 'The creator of the node',
       },
       createdFrom: {
         type: Sequelize.INTEGER,
-        comment: 'last node viewed before this was created'
+        comment: 'last node viewed before this was created',
       },
       viewedAt: {
         type: Sequelize.DATE,
-        comment: 'last date this node was viewed'
+        comment: 'last date this node was viewed',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('node');
-  }
+  },
 };
