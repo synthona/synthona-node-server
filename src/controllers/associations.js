@@ -224,8 +224,8 @@ exports.getAssociations = async (req, res, next) => {
       },
       offset: (currentPage - 1) * perPage,
       limit: perPage,
-      //TODO: sort by linkStrength once that is working?
-      order: [['updatedAt', 'DESC']],
+      // sort by linkStrength
+      order: [['linkStrength', 'DESC']],
       attributes: [
         'id',
         'nodeId',
@@ -322,6 +322,44 @@ exports.deleteAssociation = async (req, res, next) => {
     result.destroy();
     // send response with success message
     res.status(200).json({ message: 'deleted association', deletedId });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.updateLinkStrength = async (req, res, next) => {
+  const errors = validationResult(req);
+  // this comes from the is-auth middleware
+  const userId = req.user.uid;
+  try {
+    // catch validation errors
+    if (!errors.isEmpty()) {
+      const error = new Error('Validation Failed');
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    // store variables from request
+    const nodeA = req.body.nodeA;
+    const nodeB = req.body.nodeB;
+    // find the association in question
+    const result = await association.findOne({
+      where: {
+        creator: userId,
+        [Op.and]: [
+          { nodeId: { [Op.or]: [nodeA, nodeB] } },
+          { linkedNode: { [Op.or]: [nodeA, nodeB] } },
+        ],
+      },
+    });
+    // increment it by 1
+    result.linkStrength++;
+    result.save();
+    // send response with success message
+    res.status(200).json({ message: 'updated link strength' });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

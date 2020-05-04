@@ -13,14 +13,7 @@ const router = express.Router();
 router.post(
   '/',
   isAuth,
-  [
-    body('nodeId')
-      .exists()
-      .isNumeric(),
-    body('linkedNode')
-      .exists()
-      .isNumeric()
-  ],
+  [body('nodeId').exists().isNumeric(), body('linkedNode').exists().isNumeric()],
   associationController.createAssociation
 );
 
@@ -28,14 +21,7 @@ router.post(
 router.get(
   '/',
   isAuth,
-  [
-    query('nodeId')
-      .exists()
-      .isNumeric(),
-    query('page')
-      .optional()
-      .isNumeric()
-  ],
+  [query('nodeId').exists().isNumeric(), query('page').optional().isNumeric()],
   associationController.getAssociations
 );
 
@@ -43,14 +29,7 @@ router.get(
 router.delete(
   '/',
   isAuth,
-  [
-    query('nodeA')
-      .exists()
-      .isNumeric(),
-    query('nodeB')
-      .exists()
-      .isNumeric()
-  ],
+  [query('nodeA').exists().isNumeric(), query('nodeB').exists().isNumeric()],
   associationController.deleteAssociation
 );
 
@@ -58,15 +37,16 @@ router.delete(
 router.get(
   '/autocomplete',
   isAuth,
-  [
-    query('nodeId')
-      .exists()
-      .isNumeric(),
-    query('searchQuery')
-      .optional()
-      .isString()
-  ],
+  [query('nodeId').exists().isNumeric(), query('searchQuery').optional().isString()],
   associationController.associationAutocomplete
+);
+
+// update link strength
+router.post(
+  '/linkstrength',
+  isAuth,
+  [body('nodeA').exists().isNumeric(), body('nodeB').exists().isNumeric()],
+  associationController.updateLinkStrength
 );
 
 // return the router
