@@ -32,7 +32,7 @@ exports.createNode = async (req, res, next) => {
       name: name,
       summary: summary,
       content: content,
-      creator: userId
+      creator: userId,
     });
     // remove values that don't need to be returned
     delete result.dataValues.local;
@@ -65,9 +65,9 @@ exports.getNodeById = async (req, res, next) => {
     // load node
     const result = await node.findOne({
       where: {
-        id: id
+        id: id,
       },
-      attributes: ['id', 'local', 'type', 'name', 'summary', 'content', 'updatedAt']
+      attributes: ['id', 'local', 'type', 'name', 'summary', 'content', 'updatedAt'],
     });
     if (!result) {
       const error = new Error('Could not find  node');
@@ -129,8 +129,8 @@ exports.updateNode = async (req, res, next) => {
     // load text node
     const existingNode = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     if (!existingNode) {
       const error = new Error('Could not find node');
@@ -177,21 +177,21 @@ exports.searchNodes = async (req, res, next) => {
     if (searchQuery) {
       whereStatement[Op.or] = [
         {
-          name: { [Op.iLike]: '%' + searchQuery + '%' }
+          name: { [Op.iLike]: '%' + searchQuery + '%' },
         },
         {
-          summary: { [Op.iLike]: '%' + searchQuery + '%' }
+          summary: { [Op.iLike]: '%' + searchQuery + '%' },
         },
         {
-          content: { [Op.iLike]: '%' + searchQuery + '%' }
-        }
+          content: { [Op.iLike]: '%' + searchQuery + '%' },
+        },
       ];
     }
     whereStatement.creator = userId;
 
     // get the total node count
     const data = await node.findAndCountAll({
-      where: whereStatement
+      where: whereStatement,
     });
     // retrieve nodes for the requested page
     const totalItems = data.count;
@@ -201,11 +201,11 @@ exports.searchNodes = async (req, res, next) => {
       limit: perPage,
       order: [['updatedAt', 'DESC']],
       attributes: ['id', 'local', 'name', 'type', 'summary', 'updatedAt'],
-      raw: true
+      raw: true,
     });
     // TODO!!!! re-apply the base of the image URL (this shouldn't be here lmao. this is only text nodes)
     // i got way ahead of myself refactoring today and basically created a huge mess
-    const results = result.map(item => {
+    const results = result.map((item) => {
       if (item.type === 'image' && item.local) {
         const fullUrl = item.summary
           ? req.protocol + '://' + req.get('host') + '/' + item.summary
@@ -240,8 +240,8 @@ exports.deleteNodeById = async (req, res, next) => {
     // load text node
     const nodeToDelete = await node.findOne({
       where: {
-        id: id
-      }
+        id: id,
+      },
     });
     if (!nodeToDelete) {
       const error = new Error('Could not find node');

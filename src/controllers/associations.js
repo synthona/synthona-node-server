@@ -67,14 +67,6 @@ exports.createAssociation = async (req, res, next) => {
       linkStrength: 1,
       creator: userId,
     });
-    // re-generate any associated collection previews
-    if (nodeA.type === 'collection' && nodeB.type !== 'collection') {
-      console.log('regenerating node A preview');
-      preview.generateCollectionPreview(nodeA.id, req);
-    } else if (nodeB.type === 'collection' && nodeA.type !== 'collection') {
-      console.log('regenerating node B preview');
-      preview.generateCollectionPreview(nodeB.id, req);
-    }
     // load new association with node info for the linked node
     const result = await association.findOne({
       where: {
@@ -324,12 +316,6 @@ exports.deleteAssociation = async (req, res, next) => {
       const error = new Error('Could not find association');
       error.statusCode = 404;
       throw error;
-    }
-    // re-generate any associated collection previews
-    if (result.nodeType === 'collection' && result.linkedNodeType !== 'collection') {
-      preview.generateCollectionPreview(result.nodeId, req);
-    } else if (result.linkedNodeType === 'collection' && result.nodeType !== 'collection') {
-      preview.generateCollectionPreview(result.linkedNode, req);
     }
     // set deletedId
     var deletedId = nodeB;

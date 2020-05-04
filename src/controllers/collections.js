@@ -25,7 +25,7 @@ exports.createCollection = async (req, res, next) => {
       type: 'collection',
       name: name,
       summary: summary,
-      creator: userId
+      creator: userId,
     });
     // send response
     res.status(200).json({ collection: result });
@@ -57,8 +57,8 @@ exports.getCollection = async (req, res, next) => {
     const data = await association.findAndCountAll({
       where: {
         creator: userId,
-        [Op.or]: [{ nodeId: nodeId }, { linkedNode: nodeId }]
-      }
+        [Op.or]: [{ nodeId: nodeId }, { linkedNode: nodeId }],
+      },
       // logging: console.log
     });
     // retrieve nodes for the requested page
@@ -66,7 +66,7 @@ exports.getCollection = async (req, res, next) => {
     const result = await association.findAll({
       where: {
         creator: userId,
-        [Op.or]: [{ nodeId: nodeId }, { linkedNode: nodeId }]
+        [Op.or]: [{ nodeId: nodeId }, { linkedNode: nodeId }],
       },
       offset: (currentPage - 1) * perPage,
       limit: perPage,
@@ -80,16 +80,16 @@ exports.getCollection = async (req, res, next) => {
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'original',
-          attributes: ['id', 'type', 'name', 'content']
+          attributes: ['id', 'type', 'name', 'content'],
         },
         {
           model: node,
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'associated',
-          attributes: ['id', 'type', 'name', 'content']
-        }
-      ]
+          attributes: ['id', 'type', 'name', 'content'],
+        },
+      ],
     });
     // send response
     res.status(200).json({ associations: result, totalItems: totalItems });
@@ -100,72 +100,3 @@ exports.getCollection = async (req, res, next) => {
     next(err);
   }
 };
-
-// exports.addToCollection = async (req, res, next) => {
-//   // this comes from the is-auth middleware
-//   var userId = req.user.uid;
-//   try {
-//     // catch validation errors
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       const error = new Error('Validation Failed');
-//       error.statusCode = 422;
-//       error.data = errors.array();
-//       throw error;
-//     }
-//     // process request
-//     const nodeId = req.body.nodeId;
-//     const collectionId = req.body.collectionId;
-//     // add association
-//     const result = association.create({
-//       nodeId: collectionId,
-//       linkedNode: nodeId,
-//       creator: userId
-//     });
-//     // send response
-//     res.status(200).json({ collection: result });
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
-
-// exports.getAssociatedCollections = async (req, res, next) => {
-//   console.log('get associated collections');
-//   try {
-//     // catch validation errors
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       const error = new Error('Validation Failed');
-//       error.statusCode = 422;
-//       error.data = errors.array();
-//       throw error;
-//     }
-//     // process request
-//     const id = req.query.id;
-//     // const type = req.query.type;
-//     // load associations
-//     const result = await association.findAll({
-//       where: {
-//         [Op.or]: [{ linkedNode: id }, { nodeId: id }]
-//       },
-//       attributes: ['nodeId', 'name', 'linkedNode', 'linkStrength', 'creator'],
-//       include: [{ model: node, attributes: attributes }]
-//     });
-//     console.log(result);
-//     if (!result) {
-//       const error = new Error('Could not find associations');
-//       error.statusCode = 404;
-//       throw error;
-//     }
-//     // send response
-//     res.status(200).json({ associations: result });
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
