@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         comment: 'The Node which is being associated',
         unique: false,
       },
+      nodeUUID: {
+        type: DataTypes.UUID,
+        comment: 'unique identifier for the node',
+      },
       nodeType: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -24,6 +28,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         comment: 'the node being linked to',
         unique: false,
+      },
+      linkedNodeUUID: {
+        type: DataTypes.UUID,
+        comment: 'copy of the unique identifier for the linkedNode',
       },
       linkedNodeType: {
         type: DataTypes.STRING,

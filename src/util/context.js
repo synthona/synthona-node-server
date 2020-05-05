@@ -122,12 +122,12 @@ exports.removeNode = async (item, type) => {
 };
 
 // temporary?
-exports.markNodeView = async (id) => {
+exports.markNodeView = async (uuid) => {
   // mark the node as viewed
   try {
     const result = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
     });
     if (result.views !== null) {

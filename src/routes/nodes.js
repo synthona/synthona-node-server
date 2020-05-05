@@ -23,12 +23,12 @@ router.post(
   nodeController.createNode
 );
 
-// update a node by id
+// update a node by uuid
 router.patch(
   '/',
   isAuth,
   [
-    body('id').exists().isNumeric(),
+    body('uuid').exists().isUUID(),
     body('name').optional().isString(),
     body('hidden').optional().isBoolean(),
     body('summary').optional().isString(),
@@ -37,11 +37,11 @@ router.patch(
   nodeController.updateNode
 );
 
-// fetch a node by id
-router.get('/', isAuth, [query('id').exists().isNumeric()], nodeController.getNodeById);
+// fetch a node by uuid
+router.get('/', isAuth, [query('uuid').exists().isUUID()], nodeController.getNodeByUUID);
 
 // mark a node as viewed
-router.patch('/viewed', isAuth, [body('id').exists().isNumeric()], nodeController.markNodeView);
+router.patch('/viewed', isAuth, [body('uuid').exists().isUUID()], nodeController.markNodeView);
 
 // return search as a page
 // empty search returns all
@@ -57,7 +57,7 @@ router.get(
 );
 
 // Delete node by id
-router.delete('/', isAuth, [query('id').exists().isNumeric()], nodeController.deleteNodeById);
+router.delete('/', isAuth, [query('uuid').exists().isUUID()], nodeController.deleteNodeByUUID);
 
 // return the router
 module.exports = router;

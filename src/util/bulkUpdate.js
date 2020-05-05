@@ -80,3 +80,39 @@ exports.regenerateAssociationTypes = async () => {
   console.log('done');
   return;
 };
+
+exports.regenerateAssociationUUIDS = async () => {
+  const result = await association.findAll({
+    where: {},
+    include: [
+      {
+        model: node,
+        as: 'original',
+        attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
+      },
+      {
+        model: node,
+        as: 'associated',
+        attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
+      },
+    ],
+  });
+  result.forEach((value) => {
+    console.log('\n');
+    console.log('id: ' + value.id);
+    console.log('original uuid: ' + value.original.uuid);
+    console.log('associated uuid: ' + value.associated.uuid);
+    var nodeUUID = value.original.uuid;
+    var linkedNodeUUID = value.associated.uuid;
+    association.update(
+      {
+        nodeUUID: nodeUUID,
+        linkedNodeUUID: linkedNodeUUID,
+      },
+      { where: { id: value.id } }
+    );
+  });
+  console.log('\n');
+  console.log('done');
+  return;
+};

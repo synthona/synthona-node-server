@@ -32,7 +32,7 @@ exports.createText = async (req, res, next) => {
       creator: userId,
     });
     // send response
-    res.status(200).json({ id: textNode.id });
+    res.status(200).json({ uuid: textNode.uuid });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -42,7 +42,7 @@ exports.createText = async (req, res, next) => {
 };
 
 // load a single text node
-exports.getText = async (req, res, next) => {
+exports.getTextByUUID = async (req, res, next) => {
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -53,20 +53,20 @@ exports.getText = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.query.id;
+    const uuid = req.query.uuid;
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
-      attributes: ['id', 'name', 'type', 'summary', 'content', 'updatedAt'],
+      attributes: ['uuid', 'name', 'type', 'summary', 'content', 'updatedAt'],
     });
     if (!textNode) {
       const error = new Error('Could not find text node');
       error.statusCode = 404;
       throw error;
     }
-    context.markNodeView(textNode.id);
+    context.markNodeView(textNode.uuid);
     // send response
     res.status(200).json({ textNode: textNode });
   } catch (err) {
@@ -78,7 +78,7 @@ exports.getText = async (req, res, next) => {
 };
 
 // delete a single text node
-exports.deleteText = async (req, res, next) => {
+exports.deleteTextByUUID = async (req, res, next) => {
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -89,11 +89,11 @@ exports.deleteText = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.query.id;
+    const uuid = req.query.uuid;
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
     });
     if (!textNode) {
@@ -126,11 +126,11 @@ exports.setText = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.body.id;
+    const uuid = req.body.uuid;
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
     });
     if (!textNode) {
@@ -162,12 +162,12 @@ exports.processText = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.body.id;
+    const uuid = req.body.uuid;
     const summary = req.body.summary;
     // load text node
     const textNode = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
     });
     if (!textNode) {

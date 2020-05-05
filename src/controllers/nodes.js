@@ -51,7 +51,7 @@ exports.createNode = async (req, res, next) => {
   }
 };
 
-exports.getNodeById = async (req, res, next) => {
+exports.getNodeByUUID = async (req, res, next) => {
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -62,20 +62,20 @@ exports.getNodeById = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.query.id;
+    const uuid = req.query.uuid;
     // load node
     const result = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
-      attributes: ['id', 'local', 'hidden', 'type', 'name', 'summary', 'content', 'updatedAt'],
+      attributes: ['uuid', 'local', 'hidden', 'type', 'name', 'summary', 'content', 'updatedAt'],
     });
     if (!result) {
       const error = new Error('Could not find  node');
       error.statusCode = 404;
       throw error;
     }
-    context.markNodeView(result.id);
+    context.markNodeView(result.uuid);
     // update image url
     if (result.type === 'image' && result.local) {
       result.summary = result.summary
@@ -103,8 +103,8 @@ exports.markNodeView = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.body.id;
-    context.markNodeView(id);
+    const uuid = req.body.uuid;
+    context.markNodeView(uuid);
     // send response
     res.sendStatus(200);
   } catch (err) {
@@ -126,11 +126,11 @@ exports.updateNode = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.body.id;
+    const uuid = req.body.uuid;
     // load text node
     const existingNode = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
     });
     if (!existingNode) {
@@ -142,7 +142,8 @@ exports.updateNode = async (req, res, next) => {
     existingNode.name = req.body.name ? req.body.name : existingNode.name;
     existingNode.summary = req.body.summary ? req.body.summary : existingNode.summary;
     existingNode.content = req.body.content ? req.body.content : existingNode.content;
-    existingNode.hidden = req.body.hidden ? req.body.hidden : existingNode.hidden;
+    existingNode.hidden =
+      typeof req.body.hidden === 'boolean' ? req.body.hidden : existingNode.hidden;
     // save and store result
     const result = await existingNode.save();
     // return result
@@ -203,7 +204,7 @@ exports.searchNodes = async (req, res, next) => {
       offset: (currentPage - 1) * perPage,
       limit: perPage,
       order: [['updatedAt', 'DESC']],
-      attributes: ['id', 'local', 'name', 'type', 'summary', 'updatedAt'],
+      attributes: ['uuid', 'local', 'name', 'type', 'summary', 'updatedAt'],
       raw: true,
     });
     // TODO!!!! re-apply the base of the image URL (this shouldn't be here lmao. this is only text nodes)
@@ -228,7 +229,7 @@ exports.searchNodes = async (req, res, next) => {
 };
 
 // delete a single node and any associations
-exports.deleteNodeById = async (req, res, next) => {
+exports.deleteNodeByUUID = async (req, res, next) => {
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -239,11 +240,11 @@ exports.deleteNodeById = async (req, res, next) => {
       throw error;
     }
     // process request
-    const id = req.query.id;
+    const uuid = req.query.uuid;
     // load text node
     const nodeToDelete = await node.findOne({
       where: {
-        id: id,
+        uuid: uuid,
       },
     });
     if (!nodeToDelete) {

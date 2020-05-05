@@ -13,53 +13,21 @@ const router = express.Router();
 router.post(
   '/',
   isAuth,
-  [
-    body('content')
-      .exists()
-      .isJSON(),
-    body('name')
-      .optional()
-      .isString()
-  ],
+  [body('content').exists().isJSON(), body('name').optional().isString()],
   textController.createText
 );
 
 // Get text node
-router.get(
-  '/',
-  isAuth,
-  [
-    query('id')
-      .exists()
-      .isNumeric()
-  ],
-  textController.getText
-);
+router.get('/', isAuth, [query('uuid').exists().isUUID()], textController.getTextByUUID);
 
 // Delete text node
-router.delete(
-  '/',
-  isAuth,
-  [
-    query('id')
-      .exists()
-      .isNumeric()
-  ],
-  textController.deleteText
-);
+router.delete('/', isAuth, [query('uuid').exists().isUUID()], textController.deleteTextByUUID);
 
 // update text node
 router.patch(
   '/',
   isAuth,
-  [
-    body('id')
-      .exists()
-      .isNumeric(),
-    body('content')
-      .optional()
-      .isJSON()
-  ],
+  [body('uuid').exists().isUUID(), body('content').optional().isJSON()],
   textController.setText
 );
 
@@ -67,14 +35,7 @@ router.patch(
 router.patch(
   '/process',
   isAuth,
-  [
-    body('id')
-      .exists()
-      .isNumeric(),
-    body('summary')
-      .exists()
-      .isString()
-  ],
+  [body('uuid').exists().isUUID(), body('summary').exists().isString()],
   textController.processText
 );
 

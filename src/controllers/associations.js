@@ -17,10 +17,10 @@ exports.createAssociation = async (req, res, next) => {
       throw error;
     }
     // process request
-    const nodeId = req.body.nodeId;
-    const linkedNodeId = req.body.linkedNode;
+    const nodeUUID = req.body.nodeUUID;
+    const linkedNodeUUID = req.body.linkedNodeUUID;
     // prevent self association
-    if (nodeId === linkedNodeId) {
+    if (nodeUUID === linkedNodeUUID) {
       const error = new Error('Cannot associate node to itself');
       error.statusCode = 500;
       throw error;
@@ -28,12 +28,12 @@ exports.createAssociation = async (req, res, next) => {
     // check database to make sure both nodes exist
     const nodeA = await node.findOne({
       where: {
-        id: nodeId,
+        uuid: nodeUUID,
       },
     });
     const nodeB = await node.findOne({
       where: {
-        id: linkedNodeId,
+        uuid: linkedNodeUUID,
       },
     });
     // throw error if either is empty
@@ -60,8 +60,10 @@ exports.createAssociation = async (req, res, next) => {
     // create association
     const newAssociation = await association.create({
       nodeId: nodeA.id,
+      nodeUUID: nodeA.uuid,
       nodeType: nodeA.type,
       linkedNode: nodeB.id,
+      linkedNodeUUID: nodeB.uuid,
       linkedNodeType: nodeB.type,
       linkStrength: 1,
       creator: userId,
@@ -69,8 +71,8 @@ exports.createAssociation = async (req, res, next) => {
     // load new association with node info for the linked node
     const result = await association.findOne({
       where: {
-        nodeId: nodeId,
-        linkedNode: linkedNodeId,
+        nodeId: nodeA.id,
+        linkedNode: nodeB.id,
       },
       attributes: ['id', 'nodeId'],
       include: [
@@ -80,7 +82,7 @@ exports.createAssociation = async (req, res, next) => {
           where: {
             id: newAssociation.linkedNode,
           },
-          attributes: ['id', 'local', 'type', 'summary', 'name'],
+          attributes: ['uuid', 'local', 'type', 'summary', 'name'],
         },
       ],
     });
@@ -117,7 +119,10 @@ exports.associationAutocomplete = async (req, res, next) => {
     // store request variables
     var resultLimit = 7;
     var searchQuery = req.query.searchQuery || '';
-    var nodeId = parseInt(req.query.nodeId);
+    var nodeUUID = req.query.nodeUUID;
+    // fetch the node to get the internal ID
+    var specificNode = await node.findOne({ where: { uuid: nodeUUID } });
+    var nodeId = specificNode.id;
     // make a request to association table to get list of nodes to exclude
     const exclusionValues = await association.findAll({
       where: {
@@ -158,6 +163,10 @@ exports.associationAutocomplete = async (req, res, next) => {
         {
           id: { [Op.not]: exclusionList },
         },
+        // don't fetch hidden nodes
+        {
+          hidden: { [Op.not]: true },
+        },
       ];
       orderStatement = [['name', 'ASC']];
     } else {
@@ -165,6 +174,10 @@ exports.associationAutocomplete = async (req, res, next) => {
       whereStatement = [
         {
           id: { [Op.not]: exclusionList },
+        },
+        // don't fetch hidden nodes
+        {
+          hidden: { [Op.not]: true },
         },
       ];
       // if there is no search query, provide
@@ -179,7 +192,7 @@ exports.associationAutocomplete = async (req, res, next) => {
       where: whereStatement,
       limit: resultLimit,
       order: orderStatement,
-      attributes: ['id', 'name'],
+      attributes: ['uuid', 'name'],
     });
     // send response
     res.status(200).json({ nodes: result });
@@ -206,8 +219,11 @@ exports.getAssociations = async (req, res, next) => {
     }
     // process request
     var currentPage = req.query.page || 1;
-    var nodeId = req.query.nodeId;
+    var nodeUUID = req.query.nodeUUID;
     var perPage = 12;
+    // fetch the node to get the internal ID
+    var specificNode = await node.findOne({ where: { uuid: nodeUUID } });
+    var nodeId = specificNode.id;
     // get the total node count
     const data = await association.findAndCountAll({
       where: {
@@ -242,14 +258,14 @@ exports.getAssociations = async (req, res, next) => {
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'original',
-          attributes: ['id', 'local', 'type', 'summary', 'name'],
+          attributes: ['uuid', 'local', 'type', 'summary', 'name'],
         },
         {
           model: node,
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'associated',
-          attributes: ['id', 'local', 'type', 'summary', 'name'],
+          attributes: ['uuid', 'local', 'type', 'summary', 'name'],
         },
       ],
     });
@@ -305,8 +321,8 @@ exports.deleteAssociation = async (req, res, next) => {
       where: {
         creator: userId,
         [Op.and]: [
-          { nodeId: { [Op.or]: [nodeA, nodeB] } },
-          { linkedNode: { [Op.or]: [nodeA, nodeB] } },
+          { nodeUUID: { [Op.or]: [nodeA, nodeB] } },
+          { linkedNodeUUID: { [Op.or]: [nodeA, nodeB] } },
         ],
       },
       attributes: ['id', 'nodeId', 'nodeType', 'linkedNode', 'linkedNodeType'],
@@ -317,11 +333,11 @@ exports.deleteAssociation = async (req, res, next) => {
       throw error;
     }
     // set deletedId
-    var deletedId = nodeB;
+    var deletedUUID = nodeB;
     // delete the association from the database
     result.destroy();
     // send response with success message
-    res.status(200).json({ message: 'deleted association', deletedId });
+    res.status(200).json({ message: 'deleted association', deletedUUID });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -350,8 +366,8 @@ exports.updateLinkStrength = async (req, res, next) => {
       where: {
         creator: userId,
         [Op.and]: [
-          { nodeId: { [Op.or]: [nodeA, nodeB] } },
-          { linkedNode: { [Op.or]: [nodeA, nodeB] } },
+          { nodeUUID: { [Op.or]: [nodeA, nodeB] } },
+          { linkedNodeUUID: { [Op.or]: [nodeA, nodeB] } },
         ],
       },
     });

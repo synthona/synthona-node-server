@@ -9,6 +9,11 @@ module.exports = {
         type: Sequelize.INTEGER,
         comment: 'The node ID',
       },
+      uuid: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        comment: 'unique identifier',
+      },
       local: {
         allowNull: false,
         type: Sequelize.BOOLEAN,
@@ -29,7 +34,7 @@ module.exports = {
         comment: 'The name of the node',
       },
       summary: {
-        type: Sequelize.STRING(500),
+        type: Sequelize.STRING(2500),
         comment: 'the summary description data',
       },
       content: {

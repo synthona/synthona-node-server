@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         comment: 'The node ID',
       },
+      uuid: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        comment: 'unique identifier',
+      },
       local: {
         allowNull: false,
         type: DataTypes.BOOLEAN,
@@ -30,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         comment: 'The name of the node',
       },
       summary: {
-        type: DataTypes.STRING(500),
+        type: DataTypes.STRING(2500),
         comment: 'the summary description data',
       },
       content: {

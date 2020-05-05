@@ -13,7 +13,7 @@ const router = express.Router();
 router.post(
   '/',
   isAuth,
-  [body('nodeId').exists().isNumeric(), body('linkedNode').exists().isNumeric()],
+  [body('nodeUUID').exists().isUUID(), body('linkedNodeUUID').exists().isUUID()],
   associationController.createAssociation
 );
 
@@ -21,7 +21,7 @@ router.post(
 router.get(
   '/',
   isAuth,
-  [query('nodeId').exists().isNumeric(), query('page').optional().isNumeric()],
+  [query('nodeUUID').exists().isUUID(), query('page').optional().isNumeric()],
   associationController.getAssociations
 );
 
@@ -29,7 +29,7 @@ router.get(
 router.delete(
   '/',
   isAuth,
-  [query('nodeA').exists().isNumeric(), query('nodeB').exists().isNumeric()],
+  [query('nodeA').exists().isUUID(), query('nodeB').exists().isUUID()],
   associationController.deleteAssociation
 );
 
@@ -37,7 +37,7 @@ router.delete(
 router.get(
   '/autocomplete',
   isAuth,
-  [query('nodeId').exists().isNumeric(), query('searchQuery').optional().isString()],
+  [query('nodeUUID').exists().isUUID(), query('searchQuery').optional().isString()],
   associationController.associationAutocomplete
 );
 
@@ -45,7 +45,7 @@ router.get(
 router.post(
   '/linkstrength',
   isAuth,
-  [body('nodeA').exists().isNumeric(), body('nodeB').exists().isNumeric()],
+  [body('nodeA').exists().isUUID(), body('nodeB').exists().isUUID()],
   associationController.updateLinkStrength
 );
 
