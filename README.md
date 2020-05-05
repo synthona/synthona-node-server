@@ -1,8 +1,6 @@
-# Holsona
-
 ### Associative Information System
 
-This project is the backend for the Holsona application.
+This project is the backend for the application
 
 ## SETUP
 
