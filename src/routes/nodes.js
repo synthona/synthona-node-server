@@ -31,6 +31,7 @@ router.patch(
     body('uuid').exists().isUUID(),
     body('name').optional().isString(),
     body('hidden').optional().isBoolean(),
+    body('searchable').optional().isBoolean(),
     body('summary').optional().isString(),
     body('content').optional().isString(),
   ],

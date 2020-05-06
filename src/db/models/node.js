@@ -25,6 +25,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.BOOLEAN,
         comment: 'can it be accessed directly or only through its associations?',
       },
+      searchable: {
+        allowNull: false,
+        type: DataTypes.BOOLEAN,
+        comment: 'should it appear in search?',
+      },
       type: {
         type: DataTypes.STRING,
         allowNull: false,

@@ -68,7 +68,17 @@ exports.getNodeByUUID = async (req, res, next) => {
       where: {
         uuid: uuid,
       },
-      attributes: ['uuid', 'local', 'hidden', 'type', 'name', 'summary', 'content', 'updatedAt'],
+      attributes: [
+        'uuid',
+        'local',
+        'hidden',
+        'searchable',
+        'type',
+        'name',
+        'summary',
+        'content',
+        'updatedAt',
+      ],
     });
     if (!result) {
       const error = new Error('Could not find  node');
@@ -144,6 +154,8 @@ exports.updateNode = async (req, res, next) => {
     existingNode.content = req.body.content ? req.body.content : existingNode.content;
     existingNode.hidden =
       typeof req.body.hidden === 'boolean' ? req.body.hidden : existingNode.hidden;
+    existingNode.searchable =
+      typeof req.body.searchable === 'boolean' ? req.body.searchable : existingNode.searchable;
     // save and store result
     const result = await existingNode.save();
     // return result
@@ -189,9 +201,13 @@ exports.searchNodes = async (req, res, next) => {
           content: { [Op.iLike]: '%' + searchQuery + '%' },
         },
       ];
+      // if there is a search query only return searchable items
+      whereStatement.searchable = true;
+    } else {
+      // in an open request do not return hidden items
+      whereStatement.hidden = { [Op.not]: true };
     }
     whereStatement.creator = userId;
-    whereStatement.hidden = { [Op.not]: true };
 
     // get the total node count
     const data = await node.findAndCountAll({
