@@ -1,5 +1,5 @@
 {
-  "name": "holsona-server",
+  "name": "synthona-server",
   "version": "1.0.0",
   "description": "server",
   "main": "app.js",
