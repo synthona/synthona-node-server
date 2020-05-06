@@ -25,6 +25,7 @@ exports.createText = async (req, res, next) => {
     const textNode = await node.create({
       local: true,
       hidden: false,
+      searchable: true,
       type: 'text',
       name: name,
       summary: summary,

@@ -27,6 +27,7 @@ exports.createUrl = async (req, res, next) => {
     const urlNode = await node.create({
       local: true,
       hidden: false,
+      searchable: true,
       type: 'url',
       name: name,
       summary: summary,

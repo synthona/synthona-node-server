@@ -29,6 +29,7 @@ exports.createNode = async (item, type) => {
     const result = await node.create({
       local: true,
       hidden: false,
+      searchable: true,
       type: type,
       name: 'New ' + type,
       creator: item.creator,

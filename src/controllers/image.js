@@ -22,6 +22,7 @@ exports.createImage = async (req, res, next) => {
     const result = await node.create({
       local: true,
       hidden: false,
+      searchable: true,
       type: 'image',
       name: originalName,
       summary: imageUrl,
