@@ -154,35 +154,43 @@ exports.associationAutocomplete = async (req, res, next) => {
     var orderStatement = [];
     // set searchQuery
     if (searchQuery) {
-      whereStatement[Op.and] = [
-        // look for text match for the name
-        {
-          name: { [Op.iLike]: '%' + searchQuery + '%' },
-        },
-        // prevent association with exclusionList
-        {
-          id: { [Op.not]: exclusionList },
-        },
-        // don't fetch hidden nodes
-        {
-          hidden: { [Op.not]: true },
-        },
-      ];
+      whereStatement = {
+        [Op.and]: [
+          // look for text match for the name
+          {
+            name: { [Op.iLike]: '%' + searchQuery + '%' },
+          },
+          // prevent association with exclusionList
+          {
+            id: { [Op.not]: exclusionList },
+          },
+        ],
+      };
       orderStatement = [['name', 'ASC']];
     } else {
       // prevent association with exclusionList
-      whereStatement = [
-        {
-          id: { [Op.not]: exclusionList },
-        },
-        // don't fetch hidden nodes
-        {
-          hidden: { [Op.not]: true },
-        },
-      ];
+      whereStatement = {
+        [Op.and]: [
+          {
+            id: { [Op.not]: exclusionList },
+          },
+        ],
+      };
       // if there is no search query, provide
       // the most recent nodes by default
       orderStatement = [['updatedAt', 'DESC']];
+    }
+    // don't fetch hidden nodes unless
+    // the node in question is also hidden
+    // and was created by the logged in user
+    if (!specificNode.hidden) {
+      whereStatement[Op.and].push(
+        {
+          hidden: { [Op.not]: true },
+        }
+        // this is not needed since it is added below
+        // { creator: userId }
+      );
     }
     // limit results to those created by yourself????
     // TODO: revisit this and think about how it works on multiuser server
