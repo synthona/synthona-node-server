@@ -10,7 +10,6 @@ exports.createImage = async (req, res, next) => {
     if (!req.file) {
       const error = new Error('There was a problem uploading the file');
       error.statusCode = 422;
-      error.data = errors.array();
       throw error;
     }
     // this comes from the is-auth middleware
