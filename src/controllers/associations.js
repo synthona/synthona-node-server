@@ -228,7 +228,7 @@ exports.getAssociations = async (req, res, next) => {
     // process request
     var currentPage = req.query.page || 1;
     var nodeUUID = req.query.nodeUUID;
-    var perPage = 12;
+    var perPage = 17;
     // fetch the node to get the internal ID
     var specificNode = await node.findOne({ where: { uuid: nodeUUID } });
     var nodeId = specificNode.id;
@@ -266,14 +266,14 @@ exports.getAssociations = async (req, res, next) => {
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'original',
-          attributes: ['uuid', 'local', 'type', 'summary', 'name'],
+          attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
         },
         {
           model: node,
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'associated',
-          attributes: ['uuid', 'local', 'type', 'summary', 'name'],
+          attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
         },
       ],
     });
