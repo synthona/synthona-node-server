@@ -29,6 +29,7 @@ exports.createNode = async (req, res, next) => {
     const result = await node.create({
       local: local,
       hidden: false,
+      searchable: true,
       type: type,
       name: name,
       summary: summary,

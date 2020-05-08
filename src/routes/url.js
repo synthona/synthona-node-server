@@ -13,11 +13,6 @@ const router = express.Router();
 router.post(
   '/',
   isAuth,
-  [
-    body('url').exists().isURL,
-    body('name')
-      .optional()
-      .isString()
-  ],
+  [body('url').exists().isURL, body('name').optional().isString()],
   urlController.createUrl
 );

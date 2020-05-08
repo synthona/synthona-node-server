@@ -117,7 +117,7 @@ exports.associationAutocomplete = async (req, res, next) => {
       throw error;
     }
     // store request variables
-    var resultLimit = 7;
+    var resultLimit = 23;
     var searchQuery = req.query.searchQuery || '';
     var nodeUUID = req.query.nodeUUID;
     // fetch the node to get the internal ID
