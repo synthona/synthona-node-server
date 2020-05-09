@@ -159,6 +159,13 @@ exports.updateNode = async (req, res, next) => {
       typeof req.body.searchable === 'boolean' ? req.body.searchable : existingNode.searchable;
     // save and store result
     const result = await existingNode.save();
+    // it's an image re-apply the baseURL
+    if (result.type === 'image' && result.local) {
+      const fullUrl = result.summary
+        ? req.protocol + '://' + req.get('host') + '/' + result.summary
+        : null;
+      result.summary = fullUrl;
+    }
     // return result
     res.status(200).json({ node: result });
   } catch (err) {
