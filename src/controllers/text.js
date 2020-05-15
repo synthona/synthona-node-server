@@ -60,7 +60,16 @@ exports.getTextByUUID = async (req, res, next) => {
       where: {
         uuid: uuid,
       },
-      attributes: ['uuid', 'name', 'type', 'summary', 'content', 'updatedAt'],
+      attributes: [
+        'uuid',
+        'hidden',
+        'searchable',
+        'name',
+        'type',
+        'summary',
+        'content',
+        'updatedAt',
+      ],
     });
     if (!textNode) {
       const error = new Error('Could not find text node');

@@ -14,7 +14,6 @@ exports.deleteAssociations = async (id) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = 'Failed to delete associations';
-    throw err;
   }
 };
 
@@ -40,7 +39,6 @@ exports.createNode = async (item, type) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = 'Failed to add node to context system';
-    throw err;
   }
 };
 
@@ -59,7 +57,6 @@ exports.setNodeName = async (id, name) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = 'Failed to update name in context system';
-    throw err;
   }
 };
 
@@ -77,7 +74,6 @@ exports.setNodeSummary = async (item, summary) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = 'Failed to update summary in context system';
-    throw err;
   }
 };
 
@@ -118,7 +114,6 @@ exports.removeNode = async (item, type) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = 'Failed to remove node from context system';
-    throw err;
   }
 };
 
@@ -141,6 +136,5 @@ exports.markNodeView = async (uuid) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = 'Failed to mark view in context system';
-    throw err;
   }
 };

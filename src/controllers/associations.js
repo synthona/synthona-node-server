@@ -183,10 +183,10 @@ exports.associationAutocomplete = async (req, res, next) => {
     // don't fetch hidden nodes unless
     // the node in question is also hidden
     // and was created by the logged in user
-    if (!specificNode.hidden) {
+    if (!specificNode.searchable) {
       whereStatement[Op.and].push(
         {
-          hidden: { [Op.not]: true },
+          searchable: { [Op.not]: true },
         }
         // this is not needed since it is added below
         // { creator: userId }
