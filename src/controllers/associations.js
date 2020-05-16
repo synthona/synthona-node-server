@@ -228,7 +228,7 @@ exports.getAssociations = async (req, res, next) => {
     // process request
     var currentPage = req.query.page || 1;
     var nodeUUID = req.query.nodeUUID;
-    var perPage = 17;
+    var perPage = 20;
     // fetch the node to get the internal ID
     var specificNode = await node.findOne({ where: { uuid: nodeUUID } });
     var nodeId = specificNode.id;

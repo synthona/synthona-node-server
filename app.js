@@ -33,7 +33,7 @@ global.__basedir = __dirname;
 if (!fs.existsSync(`uploads`)) {
   fs.mkdirSync(`uploads`);
 }
-// create sub-directory for images
+// create sub-directory for images if it does not exist
 if (!fs.existsSync(`uploads/images`)) {
   fs.mkdirSync(`uploads/images`);
 }
