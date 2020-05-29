@@ -35,7 +35,7 @@ exports.createUrl = async (req, res, next) => {
       creator: userId,
     });
     // send response
-    res.status(200).json({ id: urlNode.id });
+    res.status(200).json({ uuid: urlNode.uuid });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

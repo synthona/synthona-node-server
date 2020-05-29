@@ -74,7 +74,7 @@ exports.createAssociation = async (req, res, next) => {
         nodeId: nodeA.id,
         linkedNode: nodeB.id,
       },
-      attributes: ['id', 'nodeId'],
+      attributes: ['id', 'nodeId', 'linkedNode'],
       include: [
         {
           model: node,
