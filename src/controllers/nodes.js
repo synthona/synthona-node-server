@@ -46,22 +46,19 @@ exports.createNode = async (req, res, next) => {
         },
       });
       // throw error if it is empty
-      if (!nodeB) {
-        const error = new Error('Could not find both nodes');
-        error.statusCode = 404;
-        throw error;
+      if (nodeB) {
+        // create association
+        await association.create({
+          nodeId: result.dataValues.id,
+          nodeUUID: result.dataValues.uuid,
+          nodeType: result.dataValues.type,
+          linkedNode: nodeB.id,
+          linkedNodeUUID: nodeB.uuid,
+          linkedNodeType: nodeB.type,
+          linkStrength: 1,
+          creator: userId,
+        });
       }
-      // create association
-      await association.create({
-        nodeId: result.dataValues.id,
-        nodeUUID: result.dataValues.uuid,
-        nodeType: result.dataValues.type,
-        linkedNode: nodeB.id,
-        linkedNodeUUID: nodeB.uuid,
-        linkedNodeType: nodeB.type,
-        linkStrength: 1,
-        creator: userId,
-      });
     }
     // remove values that don't need to be returned
     delete result.dataValues.local;
