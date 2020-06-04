@@ -30,7 +30,6 @@ exports.createImage = async (req, res, next) => {
       creator: userId,
     });
     // if there is a linkedNode passed in, associate it
-    console.log(linkedNode);
     if (linkedNode) {
       // make sure linkedNode exists
       const nodeB = await node.findOne({
