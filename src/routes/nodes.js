@@ -19,6 +19,7 @@ router.post(
     body('name').exists().isString(),
     body('summary').exists().isString(),
     body('content').exists().isString(),
+    body('linkedNode').optional().isJSON(),
   ],
   nodeController.createNode
 );

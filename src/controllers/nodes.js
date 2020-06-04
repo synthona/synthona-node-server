@@ -4,7 +4,7 @@ var fs = require('fs');
 const { validationResult } = require('express-validator/check');
 const context = require('../util/context');
 // bring in data models.
-const { node } = require('../db/models');
+const { node, association } = require('../db/models');
 const { Op } = require('sequelize');
 
 exports.createNode = async (req, res, next) => {
@@ -23,6 +23,7 @@ exports.createNode = async (req, res, next) => {
     const local = req.body.local;
     const summary = req.body.summary;
     const content = req.body.content;
+    const linkedNode = req.body.linkedNode ? JSON.parse(req.body.linkedNode) : null;
     // userId comes from the is-auth middleware
     const userId = req.user.uid;
     // create node
@@ -36,6 +37,32 @@ exports.createNode = async (req, res, next) => {
       content: content,
       creator: userId,
     });
+    // if there is a linkedNode passed in, associate it
+    if (linkedNode) {
+      // make sure linkedNode exists
+      const nodeB = await node.findOne({
+        where: {
+          uuid: linkedNode.uuid,
+        },
+      });
+      // throw error if it is empty
+      if (!nodeB) {
+        const error = new Error('Could not find both nodes');
+        error.statusCode = 404;
+        throw error;
+      }
+      // create association
+      await association.create({
+        nodeId: result.dataValues.id,
+        nodeUUID: result.dataValues.uuid,
+        nodeType: result.dataValues.type,
+        linkedNode: nodeB.id,
+        linkedNodeUUID: nodeB.uuid,
+        linkedNodeType: nodeB.type,
+        linkStrength: 1,
+        creator: userId,
+      });
+    }
     // remove values that don't need to be returned
     delete result.dataValues.local;
     delete result.dataValues.color;

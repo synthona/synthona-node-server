@@ -14,22 +14,10 @@ const router = express.Router();
 router.post(
   '/',
   isAuth,
-  [body('name').optional().isString()],
+  [body('name').optional().isString(), body('linkedNode').optional().isJSON()],
   imageUpload,
   imageController.createImage
 );
-
-// fetch an image
-// router.get(
-//   '/',
-//   isAuth,
-//   [
-//     query('id')
-//       .exists()
-//       .isNumeric()
-//   ],
-//   imageController.getImageById
-// );
 
 // return the router
 module.exports = router;
