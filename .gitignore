@@ -12,7 +12,8 @@ notes.md
 
 # testing
 /coverage
-uploads
+data
+port
 
 # production
 /build
