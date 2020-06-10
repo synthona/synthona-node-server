@@ -116,3 +116,29 @@ exports.regenerateAssociationUUIDS = async () => {
   console.log('done');
   return;
 };
+
+// needed to regenerate imageUrls after renaming "uploads" directory to "data"
+exports.regenerateImageUrls = async () => {
+  const result = await node.findAll({
+    where: {
+      local: true,
+      type: 'image',
+    },
+    order: [['updatedAt', 'ASC']],
+  });
+  result.forEach((value) => {
+    console.log(value.summary);
+    const summary = value.summary;
+    const replaceCreator = summary.replace(value.creator, 'images');
+    const updatedValue = replaceCreator.replace('images', value.creator);
+    console.log(updatedValue);
+    node.update(
+      {
+        summary: updatedValue,
+      },
+      { where: { id: value.id } }
+    );
+  });
+  console.log('done');
+  return;
+};

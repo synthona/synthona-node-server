@@ -18,6 +18,7 @@ const textRoutes = require('./src/routes/text');
 const imageRoutes = require('./src/routes/image');
 const collectionRoutes = require('./src/routes/collections');
 const associationRoutes = require('./src/routes/associations');
+const portRoutes = require('./src/routes/port');
 // import auth middleware
 const isAuth = require('./src/middleware/is-auth');
 
@@ -29,13 +30,9 @@ const eraseDatabaseOnSync = false;
 // to store the base directory of the app when it is run
 global.__basedir = __dirname;
 
-// create upload directory if it does not exist
-if (!fs.existsSync(`uploads`)) {
-  fs.mkdirSync(`uploads`);
-}
-// create sub-directory for images if it does not exist
-if (!fs.existsSync(`uploads/images`)) {
-  fs.mkdirSync(`uploads/images`);
+// create data directory if it does not exist
+if (!fs.existsSync(`data`)) {
+  fs.mkdirSync(`data`);
 }
 
 // set up express app
@@ -71,9 +68,11 @@ app.use('/user', userRoutes);
 app.use('/image', imageRoutes);
 app.use('/collection', collectionRoutes);
 app.use('/association', associationRoutes);
+app.use('/port', portRoutes);
 
 // TODO: the image directory should probably require permissions per image? not sure how that should work
-app.use('/uploads', isAuth, express.static(path.join(__dirname, 'uploads'))); // image directory
+app.use('/data', isAuth, express.static(path.join(__dirname, 'data'))); // image directory
+app.use('/port', isAuth, express.static(path.join(__dirname, 'port'))); // downloads directory
 app.use('/public', isAuth, express.static(path.join(__dirname, 'public')));
 
 if (debug) {
