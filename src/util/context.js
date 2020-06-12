@@ -26,7 +26,7 @@ exports.createNode = async (item, type) => {
   // create node
   try {
     const result = await node.create({
-      local: true,
+      isFile: false,
       hidden: false,
       searchable: true,
       type: type,

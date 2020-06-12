@@ -9,7 +9,7 @@ module.exports = {
     database: process.env.DATABASE,
     host: process.env.DATABASE_HOST,
     dialect: 'postgres',
-    logging: false
+    logging: false,
   },
   test: {
     username: process.env.DATABASE_USERNAME,
@@ -17,7 +17,7 @@ module.exports = {
     database: process.env.DATABASE,
     host: process.env.DATABASE_HOST,
     dialect: 'postgres',
-    logging: false
+    logging: false,
   },
   production: {
     username: process.env.DATABASE_USERNAME,
@@ -29,7 +29,7 @@ module.exports = {
     dialectOptions: {
       ssl: {
         // ca: fs.readFileSync(__dirname + '/mysql-ca-master.crt')
-      }
-    }
-  }
+      },
+    },
+  },
 };

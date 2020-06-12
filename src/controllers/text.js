@@ -23,7 +23,7 @@ exports.createText = async (req, res, next) => {
     const summary = '';
     // create text node
     const textNode = await node.create({
-      local: true,
+      isFile: false,
       hidden: false,
       searchable: true,
       type: 'text',

@@ -25,7 +25,7 @@ exports.createUrl = async (req, res, next) => {
     const summary = req.body.content;
     // create text node
     const urlNode = await node.create({
-      local: true,
+      isFile: false,
       hidden: false,
       searchable: true,
       type: 'url',

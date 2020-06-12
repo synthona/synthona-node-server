@@ -17,10 +17,13 @@ exports.exportAllUserData = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
+    // get username
+    const loggedInUser = await user.findOne({ where: { id: userId } });
+    const username = loggedInUser.username;
     // set up archiver
     var archiver = require('archiver');
     // create a file to stream archive data to.
-    var output = fs.createWriteStream(__basedir + '/port/export.synth.zip');
+    var output = fs.createWriteStream(__basedir + '/port/' + username + '.synth.zip');
     var archive = archiver('zip', {
       zlib: { level: 9 }, // Sets the compression level.
     });

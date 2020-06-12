@@ -15,10 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         comment: 'unique identifier',
       },
-      local: {
+      isFile: {
         allowNull: false,
         type: DataTypes.BOOLEAN,
-        comment: 'is the node local to this instance or out on the external network?',
+        comment: 'is there a file on the server associated with this?',
       },
       hidden: {
         allowNull: false,

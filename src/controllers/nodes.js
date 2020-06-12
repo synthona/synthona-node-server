@@ -1,11 +1,12 @@
 const path = require('path');
 var fs = require('fs');
-// custom code
-const { validationResult } = require('express-validator/check');
-const context = require('../util/context');
 // bring in data models.
 const { node, association } = require('../db/models');
 const { Op } = require('sequelize');
+// custom code
+const { validationResult } = require('express-validator/check');
+const context = require('../util/context');
+const fileData = require('../util/filedata');
 
 exports.createNode = async (req, res, next) => {
   const errors = validationResult(req);
@@ -20,7 +21,7 @@ exports.createNode = async (req, res, next) => {
     // process request
     const type = req.body.type;
     const name = req.body.name;
-    const local = req.body.local;
+    const isFile = req.body.isFile;
     const summary = req.body.summary;
     const content = req.body.content;
     const linkedNode = req.body.linkedNode ? JSON.parse(req.body.linkedNode) : null;
@@ -28,7 +29,7 @@ exports.createNode = async (req, res, next) => {
     const userId = req.user.uid;
     // create node
     const result = await node.create({
-      local: local,
+      isFile: isFile,
       hidden: false,
       searchable: true,
       type: type,
@@ -61,7 +62,7 @@ exports.createNode = async (req, res, next) => {
       }
     }
     // remove values that don't need to be returned
-    delete result.dataValues.local;
+    delete result.dataValues.isFile;
     delete result.dataValues.color;
     delete result.dataValues.impressions;
     delete result.dataValues.views;
@@ -95,7 +96,7 @@ exports.getNodeByUUID = async (req, res, next) => {
       },
       attributes: [
         'uuid',
-        'local',
+        'isFile',
         'hidden',
         'searchable',
         'type',
@@ -111,8 +112,8 @@ exports.getNodeByUUID = async (req, res, next) => {
       throw error;
     }
     context.markNodeView(result.uuid);
-    // update image url
-    if (result.type === 'image' && result.local) {
+    // add full file url
+    if (result.isFile) {
       result.summary = result.summary
         ? req.protocol + '://' + req.get('host') + '/' + result.summary
         : null;
@@ -183,8 +184,8 @@ exports.updateNode = async (req, res, next) => {
       typeof req.body.searchable === 'boolean' ? req.body.searchable : existingNode.searchable;
     // save and store result
     const result = await existingNode.save();
-    // it's an image re-apply the baseURL
-    if (result.type === 'image' && result.local) {
+    // it's an file, re-apply the baseURL
+    if (result.isFile) {
       const fullUrl = result.summary
         ? req.protocol + '://' + req.get('host') + '/' + result.summary
         : null;
@@ -252,13 +253,13 @@ exports.searchNodes = async (req, res, next) => {
       offset: (currentPage - 1) * perPage,
       limit: perPage,
       order: [['updatedAt', 'DESC']],
-      attributes: ['uuid', 'local', 'name', 'type', 'summary', 'updatedAt'],
+      attributes: ['uuid', 'isFile', 'name', 'type', 'summary', 'updatedAt'],
       raw: true,
     });
     // TODO!!!! re-apply the base of the image URL (this shouldn't be here lmao. this is only text nodes)
     // i got way ahead of myself refactoring today and basically created a huge mess
     const results = result.map((item) => {
-      if (item.type === 'image' && item.local) {
+      if (item.isFile) {
         const fullUrl = item.summary
           ? req.protocol + '://' + req.get('host') + '/' + item.summary
           : null;
@@ -300,13 +301,15 @@ exports.deleteNodeByUUID = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    // if the node is an image and local, delete from the file system
-    if (nodeToDelete.local && nodeToDelete.type === 'image') {
+    // if the node is a file, delete from the file system
+    if (nodeToDelete.isFile) {
       var filePath = path.join(__basedir, nodeToDelete.summary);
       // remove the file if it exists
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
+      // clean up any empty folders created by this deletion
+      fileData.cleanupDataDirectoryFromFilePath(filePath);
     }
     // delete associations
     context.deleteAssociations(nodeToDelete.id);

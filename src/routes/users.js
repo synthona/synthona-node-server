@@ -5,7 +5,7 @@ const { body, query } = require('express-validator/check');
 const userController = require('../controllers/users');
 // import route middleware
 const isAuth = require('../middleware/is-auth');
-const imageUpload = require('../middleware/image-uploads');
+const imageUpload = require('../middleware/image-upload');
 // import data models
 const { user } = require('../db/models');
 // set up router
@@ -15,11 +15,7 @@ const router = express.Router();
 router.get(
   '/username',
   isAuth,
-  [
-    query('username')
-      .exists()
-      .isString()
-  ],
+  [query('username').exists().isString()],
   userController.getUserByUsername
 );
 
@@ -35,15 +31,15 @@ router.get(
         const tokenUid = parseInt(req.user.uid);
         return user
           .findOne({
-            where: { email: value }
+            where: { email: value },
           })
-          .then(user => {
+          .then((user) => {
             // only let users fetch their own profile by email
             if (user.id !== tokenUid) {
               return Promise.reject('You are not authorized to make this request!');
             }
           });
-      })
+      }),
   ],
   userController.getUserByEmail
 );
@@ -60,21 +56,17 @@ router.patch(
         const tokenUid = parseInt(req.user.uid);
         return user
           .findOne({
-            where: { username: value }
+            where: { username: value },
           })
-          .then(user => {
+          .then((user) => {
             // only let users edit their own profile
             if (user.id !== tokenUid) {
               return Promise.reject('You are not authorized to update this user!');
             }
           });
       }),
-    body('displayName')
-      .optional()
-      .isString(),
-    body('bio')
-      .optional()
-      .isString()
+    body('displayName').optional().isString(),
+    body('bio').optional().isString(),
   ],
   userController.setUserInfo
 );
@@ -96,15 +88,15 @@ router.patch(
       .custom((value, { req }) => {
         return user
           .findOne({
-            where: { username: value }
+            where: { username: value },
           })
-          .then(user => {
+          .then((user) => {
             // only let users change their name to an available username
             if (user) {
               return Promise.reject('That username is already in use!');
             }
           });
-      })
+      }),
   ],
   userController.setUsername
 );
@@ -121,15 +113,15 @@ router.patch(
       .custom((value, { req }) => {
         return user
           .findOne({
-            where: { email: value }
+            where: { email: value },
           })
-          .then(user => {
+          .then((user) => {
             // only let users change their email to an available email
             if (user) {
               return Promise.reject('That email address is already in use!');
             }
           });
-      })
+      }),
   ],
   userController.setEmail
 );

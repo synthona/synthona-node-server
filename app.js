@@ -15,10 +15,11 @@ const nodeRoutes = require('./src/routes/nodes');
 const authRoutes = require('./src/routes/auth');
 const userRoutes = require('./src/routes/users');
 const textRoutes = require('./src/routes/text');
-const imageRoutes = require('./src/routes/image');
+// const imageRoutes = require('./src/routes/image');
 const collectionRoutes = require('./src/routes/collections');
 const associationRoutes = require('./src/routes/associations');
 const portRoutes = require('./src/routes/port');
+const fileRoutes = require('./src/routes/file');
 // import auth middleware
 const isAuth = require('./src/middleware/is-auth');
 
@@ -65,10 +66,11 @@ app.use('/node', nodeRoutes);
 app.use('/text', textRoutes);
 app.use('/auth', authRoutes);
 app.use('/user', userRoutes);
-app.use('/image', imageRoutes);
+// app.use('/image', imageRoutes);
 app.use('/collection', collectionRoutes);
 app.use('/association', associationRoutes);
 app.use('/port', portRoutes);
+app.use('/file', fileRoutes);
 
 // TODO: the image directory should probably require permissions per image? not sure how that should work
 app.use('/data', isAuth, express.static(path.join(__dirname, 'data'))); // image directory

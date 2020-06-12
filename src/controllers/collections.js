@@ -21,7 +21,7 @@ exports.createCollection = async (req, res, next) => {
     const summary = req.body.summary || '';
     // create collection
     const result = await node.create({
-      local: true,
+      isFile: false,
       hidden: false,
       searchable: true,
       type: 'collection',

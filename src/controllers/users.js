@@ -20,7 +20,7 @@ exports.getUserByUsername = async (req, res, next) => {
     // load user
     const userNode = await user.findOne({
       where: { username },
-      attributes: ['username', 'displayName', 'bio', 'avatar', 'header']
+      attributes: ['username', 'displayName', 'bio', 'avatar', 'header'],
     });
     // check for errors
     if (!userNode) {
@@ -62,7 +62,7 @@ exports.getUserByEmail = async (req, res, next) => {
     // load user
     const userNode = await user.findOne({
       where: { email },
-      attributes: ['username', 'email', 'displayName', 'bio', 'avatar', 'header']
+      attributes: ['username', 'email', 'displayName', 'bio', 'avatar', 'header'],
     });
     // check for errors
     if (!userNode) {
@@ -103,7 +103,7 @@ exports.setUserInfo = async (req, res, next) => {
     const username = req.body.username;
     // load user
     const userNode = await user.findOne({
-      where: { username }
+      where: { username },
     });
     // check for errors
     if (!userNode) {
@@ -237,12 +237,12 @@ exports.setAvatar = async (req, res, next) => {
     const originalName = req.file.originalname;
     // create node in the context system
     const imageNode = await node.create({
-      local: 'true',
+      isFile: true,
       type: 'image',
       name: originalName,
       summary: imageUrl,
       content: originalName,
-      creator: userId
+      creator: userId,
     });
     // load user
     const userNode = await user.findByPk(userId);
@@ -283,12 +283,12 @@ exports.setHeader = async (req, res, next) => {
     const originalName = req.file.originalname;
     // create node in the context system
     const imageNode = await node.create({
-      local: 'true',
+      isFile: true,
       type: 'image',
       name: originalName,
       summary: imageUrl,
       content: originalName,
-      creator: userId
+      creator: userId,
     });
     // load user
     const userNode = await user.findByPk(userId);

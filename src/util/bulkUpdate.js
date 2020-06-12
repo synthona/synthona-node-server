@@ -52,12 +52,12 @@ exports.regenerateAssociationTypes = async () => {
       {
         model: node,
         as: 'original',
-        attributes: ['id', 'local', 'type', 'summary', 'name'],
+        attributes: ['id', 'isFile', 'type', 'summary', 'name'],
       },
       {
         model: node,
         as: 'associated',
-        attributes: ['id', 'local', 'type', 'summary', 'name'],
+        attributes: ['id', 'isFile', 'type', 'summary', 'name'],
       },
     ],
   });
@@ -73,7 +73,8 @@ exports.regenerateAssociationTypes = async () => {
         nodeType: nodeType,
         linkedNodeType: linkedNodeType,
       },
-      { where: { id: value.id } }
+      { where: { id: value.id } },
+      { silent: true }
     );
   });
   console.log('\n');
@@ -88,12 +89,12 @@ exports.regenerateAssociationUUIDS = async () => {
       {
         model: node,
         as: 'original',
-        attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
+        attributes: ['id', 'uuid', 'isFile', 'type', 'summary', 'name'],
       },
       {
         model: node,
         as: 'associated',
-        attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
+        attributes: ['id', 'uuid', 'isFile', 'type', 'summary', 'name'],
       },
     ],
   });
@@ -109,7 +110,8 @@ exports.regenerateAssociationUUIDS = async () => {
         nodeUUID: nodeUUID,
         linkedNodeUUID: linkedNodeUUID,
       },
-      { where: { id: value.id } }
+      { where: { id: value.id } },
+      { silent: true }
     );
   });
   console.log('\n');
@@ -121,7 +123,7 @@ exports.regenerateAssociationUUIDS = async () => {
 exports.regenerateImageUrls = async () => {
   const result = await node.findAll({
     where: {
-      local: true,
+      isFile: true,
       type: 'image',
     },
     order: [['updatedAt', 'ASC']],
@@ -136,8 +138,32 @@ exports.regenerateImageUrls = async () => {
       {
         summary: updatedValue,
       },
-      { where: { id: value.id } }
+      { where: { id: value.id } },
+      { silent: true }
     );
+  });
+  console.log('done');
+  return;
+};
+
+// needed to regenerate isFile values because some were getting set incorrectly
+exports.regenerateIsFileValues = async () => {
+  const result = await node.findAll({
+    where: {
+      isFile: true,
+    },
+    order: [['updatedAt', 'ASC']],
+  });
+  result.forEach((value) => {
+    if (value.type === 'text' || value.type === 'collection' || value.type === 'user') {
+      node.update(
+        {
+          isFile: false,
+        },
+        { where: { id: value.id } },
+        { silent: true }
+      );
+    }
   });
   console.log('done');
   return;

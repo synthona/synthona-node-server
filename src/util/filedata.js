@@ -1,0 +1,32 @@
+const path = require('path');
+var fs = require('fs');
+
+// function to delete empty directories in the data folder from a file
+// NOTE: use caution editing this one
+exports.cleanupDataDirectoryFromFilePath = async (filePath) => {
+  var parentDirectory = filePath.substring(0, filePath.lastIndexOf('/'));
+  var dataDirectory = __basedir + '/data/';
+  // if the parentDirectory is also the dataDirectory, stop recursion
+  if (parentDirectory === dataDirectory) {
+    return;
+  }
+  // make sure the parent directory...exists
+  if (fs.existsSync(parentDirectory)) {
+    fs.readdir(parentDirectory, (err, files) => {
+      if (err) {
+        return next(err);
+      } else {
+        // if there are no files in the directory
+        if (!files.length) {
+          // directory appears to be empty, remove it
+          fs.rmdirSync(parentDirectory);
+          // recursively check to see if the directory above it is also empty
+          this.cleanupDataDirectoryFromFilePath(parentDirectory);
+        } else {
+          // if there are still files stop recursion
+          return;
+        }
+      }
+    });
+  }
+};

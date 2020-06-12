@@ -14,7 +14,7 @@ router.post(
   '/',
   isAuth,
   [
-    body('local').exists().isBoolean(),
+    body('isFile').exists().isBoolean(),
     body('type').exists().isString(),
     body('name').exists().isString(),
     body('summary').exists().isString(),

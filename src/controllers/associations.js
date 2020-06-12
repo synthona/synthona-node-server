@@ -82,12 +82,12 @@ exports.createAssociation = async (req, res, next) => {
           where: {
             id: newAssociation.linkedNode,
           },
-          attributes: ['uuid', 'local', 'type', 'summary', 'name'],
+          attributes: ['uuid', 'isFile', 'type', 'summary', 'name'],
         },
       ],
     });
-    // re-apply baseURL if the type is image
-    if (result.associated.type === 'image' && result.associated.local) {
+    // re-apply baseURL if node is a file
+    if (result.associated.isFile) {
       const fullUrl = result.associated.summary
         ? req.protocol + '://' + req.get('host') + '/' + result.associated.summary
         : null;
@@ -266,14 +266,14 @@ exports.getAssociations = async (req, res, next) => {
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'original',
-          attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
+          attributes: ['id', 'uuid', 'isFile', 'type', 'summary', 'name'],
         },
         {
           model: node,
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'associated',
-          attributes: ['id', 'uuid', 'local', 'type', 'summary', 'name'],
+          attributes: ['id', 'uuid', 'isFile', 'type', 'summary', 'name'],
         },
       ],
     });
@@ -290,7 +290,7 @@ exports.getAssociations = async (req, res, next) => {
     // TODO!!!! re-apply the base of the image URL (this shouldn't be here lmao. this is only text nodes)
     // i got way ahead of myself refactoring today and basically created a huge mess
     const results = associations.map((item) => {
-      if (item.type === 'image' && item.local) {
+      if (item.isFile) {
         const fullUrl = item.summary
           ? req.protocol + '://' + req.get('host') + '/' + item.summary
           : null;
