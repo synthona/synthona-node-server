@@ -7,6 +7,10 @@ const shortId = require('shortid');
 // set up multer config for file uploads
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // generate user directory if it does not exist
+    if (!fs.existsSync('data/' + req.user.uid)) {
+      fs.mkdirSync('data/' + req.user.uid);
+    }
     // create a hash of the filename
     file.hash = crypto.createHash('md5').update(file.originalname).digest('hex');
     // generate directories
@@ -38,7 +42,7 @@ const fileStorage = multer.diskStorage({
 
 // determine which mimeTypes match with which nodeTypes
 const imageMimetypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'];
-const audioMimetypes = ['audio/wav', 'audio/mpeg', 'audio/x-m4a'];
+const audioMimetypes = ['audio/mpeg', 'audio/x-m4a'];
 
 // set up allowed mimetype config and prepare nodeType for controller
 const fileFilter = (req, file, cb) => {

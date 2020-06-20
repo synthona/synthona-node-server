@@ -309,7 +309,7 @@ exports.deleteNodeByUUID = async (req, res, next) => {
         fs.unlinkSync(filePath);
       }
       // clean up any empty folders created by this deletion
-      fileData.cleanupDataDirectoryFromFilePath(filePath);
+      // fileData.cleanupDataDirectoryFromFilePath(filePath);
     }
     // delete associations
     context.deleteAssociations(nodeToDelete.id);

@@ -3,6 +3,9 @@ var fs = require('fs');
 
 // function to delete empty directories in the data folder from a file
 // NOTE: use caution editing this one
+
+// TODO - refactor this to come in from the top level of the data directory and clear out empty directories
+// just prefer this to recursion probably since this can possibly be called on files stored outside the app
 exports.cleanupDataDirectoryFromFilePath = async (filePath) => {
   var parentDirectory = filePath.substring(0, filePath.lastIndexOf('/'));
   var dataDirectory = __basedir + '/data/';

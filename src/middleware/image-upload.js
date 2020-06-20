@@ -8,6 +8,10 @@ const allowedMimetypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'];
 // set up multer config for file uploads
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
+    // generate user directory if it does not exist
+    if (!fs.existsSync('data/' + req.user.uid)) {
+      fs.mkdirSync('data/' + req.user.uid);
+    }
     // create a hash of the filename
     file.hash = crypto.createHash('md5').update(file.originalname).digest('hex');
     // generate directories
