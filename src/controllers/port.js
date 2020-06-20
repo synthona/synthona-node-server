@@ -45,7 +45,7 @@ exports.exportAllUserData = async (req, res, next) => {
         searchable: true,
         type: 'synthona',
         name: exportName,
-        summary: 'data/' + exportName,
+        summary: 'data/exports/' + exportName,
         content: exportName,
         creator: userId,
       });
