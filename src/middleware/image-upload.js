@@ -1,6 +1,7 @@
 // imports
 const multer = require('multer');
 const shortId = require('shortid');
+const crypto = require('crypto');
 const fs = require('fs');
 
 const allowedMimetypes = ['image/png', 'image/jpg', 'image/jpeg', 'image/gif'];

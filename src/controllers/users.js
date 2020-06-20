@@ -238,6 +238,8 @@ exports.setAvatar = async (req, res, next) => {
     // create node in the context system
     const imageNode = await node.create({
       isFile: true,
+      hidden: false,
+      searchable: true,
       type: 'image',
       name: originalName,
       summary: imageUrl,
@@ -254,7 +256,7 @@ exports.setAvatar = async (req, res, next) => {
     }
     // i think it's bad practice to have to calculate the avatar URL on the fly like this?
     // im not sure how best to do this for the long term tbh.
-    userNode.avatar = imageNode.content;
+    userNode.avatar = imageNode.summary;
     const result = await userNode.save();
     // send response
     res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/' + result.avatar });
@@ -284,6 +286,8 @@ exports.setHeader = async (req, res, next) => {
     // create node in the context system
     const imageNode = await node.create({
       isFile: true,
+      hidden: false,
+      searchable: true,
       type: 'image',
       name: originalName,
       summary: imageUrl,
@@ -300,7 +304,7 @@ exports.setHeader = async (req, res, next) => {
     }
     // i think it's bad practice to have to calculate the avatar URL on the fly like this?
     // im not sure how best to do this for the long term tbh.
-    userNode.header = imageNode.content;
+    userNode.header = imageNode.summary;
     const result = await userNode.save();
     // send response
     res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/' + result.header });
