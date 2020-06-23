@@ -25,7 +25,7 @@
 //       searchable: true,
 //       type: 'image',
 //       name: originalName,
-//       summary: imageUrl,
+//       preview: imageUrl,
 //       content: originalName,
 //       creator: userId,
 //     });
@@ -57,8 +57,8 @@
 //     }
 //     // add the baseURL of the server instance back in
 //     if (result.file) {
-//       result.summary = result.summary
-//         ? req.protocol + '://' + req.get('host') + '/' + result.summary
+//       result.preview = result.preview
+//         ? req.protocol + '://' + req.get('host') + '/' + result.preview
 //         : null;
 //     }
 //     // send response

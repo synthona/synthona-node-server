@@ -15,6 +15,14 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         comment: 'unique identifier',
       },
+      metadata: {
+        type: DataTypes.JSON,
+        comment: 'json object containing non-query-able properties for the node',
+      },
+      path: {
+        type: DataTypes.STRING,
+        comment: 'url or file path associated with the node',
+      },
       isFile: {
         allowNull: false,
         type: DataTypes.BOOLEAN,
@@ -39,9 +47,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         comment: 'The name of the node',
       },
-      summary: {
+      preview: {
         type: DataTypes.STRING(2500),
-        comment: 'the summary description data',
+        comment: 'whatever information is needed for the node preview',
+      },
+      comment: {
+        type: DataTypes.STRING(2500),
+        comment: 'a user comment',
       },
       content: {
         type: DataTypes.TEXT,
@@ -66,13 +78,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         comment: 'The creator of the node',
       },
-      createdFrom: {
-        type: DataTypes.INTEGER,
-        comment: 'last node viewed before this was created',
-      },
       viewedAt: {
         type: DataTypes.DATE,
         comment: 'last date this node was viewed',
+      },
+      importId: {
+        type: DataTypes.UUID,
+        comment: 'UUID of the import package, if association was imported from elsewhere',
       },
       createdAt: {
         allowNull: false,

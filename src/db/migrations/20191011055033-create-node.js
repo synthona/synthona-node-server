@@ -33,9 +33,9 @@ module.exports = {
         type: Sequelize.STRING,
         comment: 'The name of the node',
       },
-      summary: {
+      preview: {
         type: Sequelize.STRING(2500),
-        comment: 'the summary description data',
+        comment: 'the preview description data',
       },
       content: {
         type: Sequelize.TEXT,

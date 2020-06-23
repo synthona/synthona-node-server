@@ -82,16 +82,16 @@ exports.createAssociation = async (req, res, next) => {
           where: {
             id: newAssociation.linkedNode,
           },
-          attributes: ['uuid', 'isFile', 'type', 'summary', 'name'],
+          attributes: ['uuid', 'isFile', 'type', 'preview', 'name'],
         },
       ],
     });
     // re-apply baseURL if node is a file
     if (result.associated.isFile) {
-      const fullUrl = result.associated.summary
-        ? req.protocol + '://' + req.get('host') + '/' + result.associated.summary
+      const fullUrl = result.associated.preview
+        ? req.protocol + '://' + req.get('host') + '/' + result.associated.preview
         : null;
-      result.associated.summary = fullUrl;
+      result.associated.preview = fullUrl;
     }
     // send response with values
     res.status(200).json({ association: result });
@@ -266,14 +266,14 @@ exports.getAssociations = async (req, res, next) => {
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'original',
-          attributes: ['id', 'uuid', 'isFile', 'type', 'summary', 'name'],
+          attributes: ['id', 'uuid', 'isFile', 'type', 'preview', 'name'],
         },
         {
           model: node,
           where: { id: { [Op.not]: nodeId } },
           required: false,
           as: 'associated',
-          attributes: ['id', 'uuid', 'isFile', 'type', 'summary', 'name'],
+          attributes: ['id', 'uuid', 'isFile', 'type', 'preview', 'name'],
         },
       ],
     });
@@ -291,10 +291,10 @@ exports.getAssociations = async (req, res, next) => {
     // i got way ahead of myself refactoring today and basically created a huge mess
     const results = associations.map((item) => {
       if (item.isFile) {
-        const fullUrl = item.summary
-          ? req.protocol + '://' + req.get('host') + '/' + item.summary
+        const fullUrl = item.preview
+          ? req.protocol + '://' + req.get('host') + '/' + item.preview
           : null;
-        item.summary = fullUrl;
+        item.preview = fullUrl;
       }
       return item;
     });

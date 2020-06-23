@@ -22,7 +22,7 @@ exports.createUrl = async (req, res, next) => {
     // process request
     const content = req.body.content;
     const name = req.body.name || 'untitled';
-    const summary = req.body.content;
+    const preview = req.body.content;
     // create text node
     const urlNode = await node.create({
       isFile: false,
@@ -30,7 +30,7 @@ exports.createUrl = async (req, res, next) => {
       searchable: true,
       type: 'url',
       name: name,
-      summary: summary,
+      preview: preview,
       content: content,
       creator: userId,
     });

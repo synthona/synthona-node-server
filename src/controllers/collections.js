@@ -18,7 +18,7 @@ exports.createCollection = async (req, res, next) => {
     }
     // process request
     const name = req.body.name || 'empty collection';
-    const summary = req.body.summary || '';
+    const preview = req.body.preview || '';
     // create collection
     const result = await node.create({
       isFile: false,
@@ -26,7 +26,7 @@ exports.createCollection = async (req, res, next) => {
       searchable: true,
       type: 'collection',
       name: name,
-      summary: summary,
+      preview: preview,
       creator: userId,
     });
     // send response

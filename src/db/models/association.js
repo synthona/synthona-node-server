@@ -47,6 +47,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         comment: 'The creator of the association',
       },
+      importId: {
+        type: DataTypes.UUID,
+        after: 'creator',
+        comment: 'UUID of the import package, if association was imported from elsewhere',
+      },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE,

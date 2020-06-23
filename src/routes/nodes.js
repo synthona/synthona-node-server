@@ -17,7 +17,7 @@ router.post(
     body('isFile').exists().isBoolean(),
     body('type').exists().isString(),
     body('name').exists().isString(),
-    body('summary').exists().isString(),
+    body('preview').exists().isString(),
     body('content').exists().isString(),
     body('linkedNode').optional().isJSON(),
   ],
@@ -33,7 +33,7 @@ router.patch(
     body('name').optional().isString(),
     body('hidden').optional().isBoolean(),
     body('searchable').optional().isBoolean(),
-    body('summary').optional().isString(),
+    body('preview').optional().isString(),
     body('content').optional().isString(),
   ],
   nodeController.updateNode

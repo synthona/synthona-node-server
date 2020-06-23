@@ -60,22 +60,22 @@ exports.setNodeName = async (id, name) => {
   }
 };
 
-exports.setNodeSummary = async (item, summary) => {
-  // set the summary
-  try {
-    const result = await node.findOne({
-      where: {
-        id: item.id,
-      },
-    });
-    result.summary = summary;
-    const updatedNode = await result.save();
-    return updatedNode;
-  } catch (err) {
-    err.statusCode = 500;
-    err.message = 'Failed to update summary in context system';
-  }
-};
+// exports.setNodePreview = async (item, preview) => {
+//   // set the preview
+//   try {
+//     const result = await node.findOne({
+//       where: {
+//         id: item.id,
+//       },
+//     });
+//     result.preview = preview;
+//     const updatedNode = await result.save();
+//     return updatedNode;
+//   } catch (err) {
+//     err.statusCode = 500;
+//     err.message = 'Failed to update preview in context system';
+//   }
+// };
 
 // exports.setNodeContent = async (item, content) => {
 //   // set the content
@@ -119,18 +119,14 @@ exports.removeNode = async (item, type) => {
 
 // temporary?
 exports.markNodeView = async (uuid) => {
-  // mark the node as viewed
+  // mark the node as updated
   try {
     const result = await node.findOne({
       where: {
         uuid: uuid,
       },
     });
-    if (result.views !== null) {
-      result.views++;
-    } else {
-      result.views = 1;
-    }
+    result.changed('updatedAt', true);
     const updatedNode = await result.save();
     return updatedNode;
   } catch (err) {

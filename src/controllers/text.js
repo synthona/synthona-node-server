@@ -20,7 +20,7 @@ exports.createText = async (req, res, next) => {
     // process request
     const content = req.body.content;
     const name = req.body.name || 'untitled';
-    const summary = '';
+    const preview = '';
     // create text node
     const textNode = await node.create({
       isFile: false,
@@ -28,7 +28,7 @@ exports.createText = async (req, res, next) => {
       searchable: true,
       type: 'text',
       name: name,
-      summary: summary,
+      preview: preview,
       content: content,
       creator: userId,
     });
@@ -66,7 +66,7 @@ exports.getTextByUUID = async (req, res, next) => {
         'searchable',
         'name',
         'type',
-        'summary',
+        'preview',
         'content',
         'updatedAt',
       ],
@@ -173,7 +173,7 @@ exports.processText = async (req, res, next) => {
     }
     // process request
     const uuid = req.body.uuid;
-    const summary = req.body.summary;
+    const preview = req.body.preview;
     // load text node
     const textNode = await node.findOne({
       where: {
@@ -185,7 +185,7 @@ exports.processText = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    textNode.summary = summary ? summary : textNode.summary;
+    textNode.preview = preview ? preview : textNode.preview;
     const result = await textNode.save();
     // send response
     res.status(200).json({ node: result });

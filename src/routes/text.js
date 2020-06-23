@@ -35,7 +35,7 @@ router.patch(
 router.patch(
   '/process',
   isAuth,
-  [body('uuid').exists().isUUID(), body('summary').exists().isString()],
+  [body('uuid').exists().isUUID(), body('preview').exists().isString()],
   textController.processText
 );
 

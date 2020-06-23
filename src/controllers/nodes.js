@@ -22,7 +22,7 @@ exports.createNode = async (req, res, next) => {
     const type = req.body.type;
     const name = req.body.name;
     const isFile = req.body.isFile;
-    const summary = req.body.summary;
+    const preview = req.body.preview;
     const content = req.body.content;
     const linkedNode = req.body.linkedNode ? JSON.parse(req.body.linkedNode) : null;
     // userId comes from the is-auth middleware
@@ -34,7 +34,7 @@ exports.createNode = async (req, res, next) => {
       searchable: true,
       type: type,
       name: name,
-      summary: summary,
+      preview: preview,
       content: content,
       creator: userId,
     });
@@ -101,7 +101,7 @@ exports.getNodeByUUID = async (req, res, next) => {
         'searchable',
         'type',
         'name',
-        'summary',
+        'preview',
         'content',
         'updatedAt',
       ],
@@ -114,8 +114,8 @@ exports.getNodeByUUID = async (req, res, next) => {
     context.markNodeView(result.uuid);
     // add full file url
     if (result.isFile) {
-      result.summary = result.summary
-        ? req.protocol + '://' + req.get('host') + '/' + result.summary
+      result.preview = result.preview
+        ? req.protocol + '://' + req.get('host') + '/' + result.preview
         : null;
     }
     // send response
@@ -176,7 +176,7 @@ exports.updateNode = async (req, res, next) => {
     }
     // update any values that have been changed
     existingNode.name = req.body.name ? req.body.name : existingNode.name;
-    existingNode.summary = req.body.summary ? req.body.summary : existingNode.summary;
+    existingNode.preview = req.body.preview ? req.body.preview : existingNode.preview;
     existingNode.content = req.body.content ? req.body.content : existingNode.content;
     existingNode.hidden =
       typeof req.body.hidden === 'boolean' ? req.body.hidden : existingNode.hidden;
@@ -186,10 +186,10 @@ exports.updateNode = async (req, res, next) => {
     const result = await existingNode.save();
     // it's an file, re-apply the baseURL
     if (result.isFile) {
-      const fullUrl = result.summary
-        ? req.protocol + '://' + req.get('host') + '/' + result.summary
+      const fullUrl = result.preview
+        ? req.protocol + '://' + req.get('host') + '/' + result.preview
         : null;
-      result.summary = fullUrl;
+      result.preview = fullUrl;
     }
     // return result
     res.status(200).json({ node: result });
@@ -228,7 +228,7 @@ exports.searchNodes = async (req, res, next) => {
           name: { [Op.iLike]: '%' + searchQuery + '%' },
         },
         {
-          summary: { [Op.iLike]: '%' + searchQuery + '%' },
+          preview: { [Op.iLike]: '%' + searchQuery + '%' },
         },
         {
           content: { [Op.iLike]: '%' + searchQuery + '%' },
@@ -253,17 +253,17 @@ exports.searchNodes = async (req, res, next) => {
       offset: (currentPage - 1) * perPage,
       limit: perPage,
       order: [['updatedAt', 'DESC']],
-      attributes: ['uuid', 'isFile', 'name', 'type', 'summary', 'updatedAt'],
+      attributes: ['uuid', 'isFile', 'name', 'type', 'preview', 'updatedAt'],
       raw: true,
     });
     // TODO!!!! re-apply the base of the image URL (this shouldn't be here lmao. this is only text nodes)
     // i got way ahead of myself refactoring today and basically created a huge mess
     const results = result.map((item) => {
       if (item.isFile) {
-        const fullUrl = item.summary
-          ? req.protocol + '://' + req.get('host') + '/' + item.summary
+        const fullUrl = item.preview
+          ? req.protocol + '://' + req.get('host') + '/' + item.preview
           : null;
-        item.summary = fullUrl;
+        item.preview = fullUrl;
       }
       return item;
     });
@@ -303,7 +303,7 @@ exports.deleteNodeByUUID = async (req, res, next) => {
     }
     // if the node is a file, delete from the file system
     if (nodeToDelete.isFile) {
-      var filePath = path.join(__basedir, nodeToDelete.summary);
+      var filePath = path.join(__basedir, nodeToDelete.preview);
       // remove the file if it exists
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);

@@ -33,7 +33,7 @@ exports.createFile = async (req, res, next) => {
       searchable: true,
       type: nodeType,
       name: originalName,
-      summary: fileUrl,
+      preview: fileUrl,
       content: originalName,
       creator: userId,
     });
@@ -65,8 +65,8 @@ exports.createFile = async (req, res, next) => {
     }
     // add the baseURL of the server instance back in
     if (result.isFile) {
-      result.summary = result.summary
-        ? req.protocol + '://' + req.get('host') + '/' + result.summary
+      result.preview = result.preview
+        ? req.protocol + '://' + req.get('host') + '/' + result.preview
         : null;
     }
     // send response

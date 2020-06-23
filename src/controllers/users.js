@@ -242,7 +242,7 @@ exports.setAvatar = async (req, res, next) => {
       searchable: true,
       type: 'image',
       name: originalName,
-      summary: imageUrl,
+      preview: imageUrl,
       content: originalName,
       creator: userId,
     });
@@ -256,7 +256,7 @@ exports.setAvatar = async (req, res, next) => {
     }
     // i think it's bad practice to have to calculate the avatar URL on the fly like this?
     // im not sure how best to do this for the long term tbh.
-    userNode.avatar = imageNode.summary;
+    userNode.avatar = imageNode.preview;
     const result = await userNode.save();
     // send response
     res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/' + result.avatar });
@@ -290,7 +290,7 @@ exports.setHeader = async (req, res, next) => {
       searchable: true,
       type: 'image',
       name: originalName,
-      summary: imageUrl,
+      preview: imageUrl,
       content: originalName,
       creator: userId,
     });
@@ -304,7 +304,7 @@ exports.setHeader = async (req, res, next) => {
     }
     // i think it's bad practice to have to calculate the avatar URL on the fly like this?
     // im not sure how best to do this for the long term tbh.
-    userNode.header = imageNode.summary;
+    userNode.header = imageNode.preview;
     const result = await userNode.save();
     // send response
     res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/' + result.header });

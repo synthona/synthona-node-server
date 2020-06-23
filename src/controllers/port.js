@@ -4,6 +4,8 @@ const { validationResult } = require('express-validator/check');
 // bring in data models.
 const { node, association, user } = require('../db/models');
 const { Op } = require('sequelize');
+// bring in libraries for file and directory name generation
+const crypto = require('crypto');
 // set up archiver and unzip library
 const archiver = require('archiver');
 var admZip = require('adm-zip');
@@ -45,7 +47,7 @@ exports.exportAllUserData = async (req, res, next) => {
         searchable: true,
         type: 'synthona',
         name: exportName,
-        summary: 'data/' + userId + '/exports/' + exportName,
+        preview: 'data/' + userId + '/exports/' + exportName,
         content: exportName,
         creator: userId,
       });
@@ -79,7 +81,8 @@ exports.exportAllUserData = async (req, res, next) => {
         creator: userId,
         [Op.and]: [{ [Op.not]: { type: 'synthona' } }, { [Op.not]: { type: 'audio' } }],
       },
-      order: [['id', 'ASC']],
+      order: [['updatedAt', 'DESC']],
+      // limit: 30,
       // attributes: ['id', 'uuid'],
       // include the associations
       include: [
@@ -101,24 +104,24 @@ exports.exportAllUserData = async (req, res, next) => {
             'createdAt',
           ],
         },
-        {
-          model: association,
-          where: { creator: userId },
-          required: false,
-          as: 'associated',
-          attributes: [
-            'id',
-            'nodeId',
-            'nodeUUID',
-            'nodeType',
-            'linkedNode',
-            'linkedNodeUUID',
-            'linkedNodeType',
-            'linkStrength',
-            'updatedAt',
-            'createdAt',
-          ],
-        },
+        // {
+        //   model: association,
+        //   where: { creator: userId },
+        //   required: false,
+        //   as: 'associated',
+        //   attributes: [
+        //     'id',
+        //     'nodeId',
+        //     'nodeUUID',
+        //     'nodeType',
+        //     'linkedNode',
+        //     'linkedNodeUUID',
+        //     'linkedNodeType',
+        //     'linkStrength',
+        //     'updatedAt',
+        //     'createdAt',
+        //   ],
+        // },
       ],
     });
     // loop through all nodes
@@ -130,9 +133,9 @@ exports.exportAllUserData = async (req, res, next) => {
       if (!nodeIdList.includes(node.id)) {
         // if the node is a file, add the file to the export
         if (node.isFile) {
-          extension = node.summary.substr(node.summary.lastIndexOf('.'));
+          let extension = node.preview.substr(node.preview.lastIndexOf('.'));
           // append the associated file to the export
-          archive.append(fs.createReadStream(node.summary), { name: node.uuid + extension });
+          archive.append(fs.createReadStream(node.preview), { name: node.uuid + extension });
         }
         var associationList = [];
         var exportNode = node;
@@ -204,6 +207,8 @@ exports.exportAllUserData = async (req, res, next) => {
 };
 
 exports.unpackSynthonaImport = async (req, res, next) => {
+  // this comes from the is-auth middleware
+  const userId = req.user.uid;
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -213,9 +218,19 @@ exports.unpackSynthonaImport = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
-    const uuid = req.body.uuid;
-    const packageNode = await node.findOne({ where: { uuid: uuid }, raw: true });
-    const packageUrl = packageNode.summary;
+    // generate user data directory if it does not exist
+    if (!fs.existsSync(__basedir + '/data/' + userId)) {
+      fs.mkdirSync(__basedir + '/data/' + userId);
+    }
+    // uuid of the import package node
+    const packageUUID = req.body.uuid;
+    // fetch the package node from the DB
+    const packageNode = await node.findOne({
+      where: { [Op.and]: [{ uuid: packageUUID }, { creator: userId }] },
+      raw: true,
+    });
+    // get the fileUrl
+    const packageUrl = packageNode.preview;
     // check zip buffer size before unzipping
     var buffer = new admZip(packageUrl).toBuffer();
     const maxZipSize = 1000000000; // 1GB
@@ -227,38 +242,176 @@ exports.unpackSynthonaImport = async (req, res, next) => {
     // create new reference to zip
     var zip = new admZip(packageUrl);
     var zipEntries = zip.getEntries();
-    // const newIds = [];
     // loop through the zip entries and create nodes for them
-    zipEntries.forEach((entry) => {
+    for (let entry of zipEntries) {
+      // loop through the nodes.json file
       if (entry.name === 'nodes.json') {
-        console.log('node');
-        // newIds.push({oldId: entry.id, newId: })
-        const jsonData = JSON.parse(entry.getData());
-        // console.log(jsonData);
-        jsonData.forEach((node) => {
-          console.log(node.name);
-        });
-      } else if (entry.name === 'association.json') {
-        console.log('user');
+        // set up main variables for processing
+        let jsonData = JSON.parse(entry.getData());
+        let newNode = {};
+        let newNodeIdList = [];
+        // iterate through the JSON data
+        for (let nodeImport of jsonData) {
+          // if it's not a file just generate the node
+          if (!nodeImport.isFile) {
+            // generate node
+            newNode = await node.create({
+              isFile: nodeImport.isFile,
+              // hidden: nodeImport.hidden,
+              hidden: false,
+              // searchable: nodeImport.searchable,
+              searchable: true,
+              type: nodeImport.type,
+              name: nodeImport.name,
+              preview: nodeImport.preview,
+              content: nodeImport.content,
+              creator: userId,
+              createdAt: nodeImport.createdAt,
+              importId: packageUUID,
+            });
+          } else {
+            // load the fileEntry
+            let extension = nodeImport.preview.substr(nodeImport.preview.lastIndexOf('.'));
+            // use the uuid to recognize the file
+            const fileEntry = zip.getEntry(nodeImport.uuid + extension);
+            // create a hash of the filename
+            const nameHash = crypto.createHash('md5').update(fileEntry.name).digest('hex');
+            // generate directories
+            if (
+              !fs.existsSync(
+                __basedir +
+                  '/data/' +
+                  userId +
+                  '/' +
+                  nameHash.substring(0, 3) +
+                  '/' +
+                  nameHash.substring(3, 6)
+              )
+            ) {
+              // if new directories are needed generate them
+              fs.mkdirSync(__basedir + '/data/' + userId + '/' + nameHash.substring(0, 3));
+              fs.mkdirSync(
+                __basedir +
+                  '/data/' +
+                  userId +
+                  '/' +
+                  nameHash.substring(0, 3) +
+                  '/' +
+                  nameHash.substring(3, 6)
+              );
+            }
+            //extract file to the generated directory
+            zip.extractEntryTo(
+              fileEntry,
+              __basedir +
+                '/data/' +
+                userId +
+                '/' +
+                nameHash.substring(0, 3) +
+                '/' +
+                nameHash.substring(3, 6) +
+                '/',
+              false,
+              true
+            );
+            // generate node
+            newNode = await node.create({
+              isFile: nodeImport.isFile,
+              // hidden: nodeImport.hidden,
+              hidden: false,
+              // searchable: nodeImport.searchable,
+              searchable: true,
+              type: nodeImport.type,
+              name: nodeImport.name,
+              preview:
+                'data/' +
+                userId +
+                '/' +
+                nameHash.substring(0, 3) +
+                '/' +
+                nameHash.substring(3, 6) +
+                '/' +
+                fileEntry.name,
+              content: nodeImport.content,
+              creator: userId,
+              createdAt: nodeImport.createdAt,
+              importId: packageUUID,
+            });
+          }
+          // if the node in question has associations, process them
+          if (nodeImport.associationList) {
+            // loop through the associationList for the current node from the JSON file
+            for (associationImport of nodeImport.associationList) {
+              // create the association as-it-appears, but set the
+              // nodeId and nodeUUID to the new values. linkedNode
+              // and linkedNodeUUID will temporarily have the wrong values. this will
+              // be corrected at a second pass later in the import
+              await association.create({
+                nodeId: newNode.id,
+                nodeUUID: newNode.uuid,
+                nodeType: newNode.type,
+                linkedNode: associationImport.linkedNode,
+                linkedNodeUUID: associationImport.linkedNodeUUID,
+                linkedNodeType: associationImport.linkedNodeType,
+                linkStrength: associationImport.linkStrength,
+                creator: userId,
+                importId: packageUUID,
+                createdAt: associationImport.createdAt,
+                updatedAt: associationImport.updatedAt,
+              });
+            }
+          }
+          // store the old and new UUIDs and IDs here to be
+          // re-processed in the final passthrough
+          newNodeIdList.push({
+            oldId: nodeImport.id,
+            oldUUID: nodeImport.uuid,
+            newId: newNode.id,
+            newUUID: newNode.uuid,
+          });
+        }
+        // process the linkedNode and linkedNodeUUID columns
+        for (let value of newNodeIdList) {
+          // replace the temporary values with the correct values
+          association.update(
+            {
+              linkedNode: value.newId,
+              linkedNodeUUID: value.newUUID,
+            },
+            {
+              where: {
+                [Op.and]: [
+                  { linkedNode: value.oldId },
+                  { linkedNodeUUID: value.oldUUID },
+                  { importId: packageUUID },
+                ],
+              },
+            }
+          );
+        }
       } else if (entry.name === 'user.json') {
         console.log('user');
       }
       // console.log(entry.name);
-    });
-    // two passes on import
-    // the first is to create the new nodes as empty nodes and get the new IDs/contextIds
-    // and use those to recreate the half of the association you can create
-    // the second is to write all the data from nodes.json back onto the nodes
-    // which is what completes the import process without overwriting existing data!
+    }
 
-    // two passes are needed becasue of how exports are built to conserve space
-    // without losing any import information
+    // mark the import package as expanded
+    // node.update(
+    //   {
+    //     content: { expanded: true },
+    //   },
+    //   {
+    //     where: {
+    //       uuid: packageUUID,
+    //     },
+    //   }
+    // );
+    // TODO
 
-    // at this point i guess i should just uh...iterate through the unzipped directory
-    // and use the DB directory to create nodes for everything again?
-    // the problem i suppose is, how to make sure the files line up with the nodes?
-    // maybe the export should use the uh...uuid...as the name instead
+    // await processZip;
+    // await Promise.all([processZip]);
     console.log('done');
+    // send response
     res.sendStatus(200);
   } catch (err) {
     if (!err.statusCode) {
@@ -267,63 +420,3 @@ exports.unpackSynthonaImport = async (req, res, next) => {
     next(err);
   }
 };
-
-// exports.getExportByUUID = async (req, res, next) => {
-//   try {
-//     console.log('get export by id');
-//     // catch validation errors
-//     // const errors = validationResult(req);
-//     // if (!errors.isEmpty()) {
-//     //   const error = new Error('Validation Failed');
-//     //   error.statusCode = 422;
-//     //   error.data = errors.array();
-//     //   throw error;
-//     // }
-//     // load all the nodes
-
-//     const data = await node.findAll({
-//       where: {
-//         id: 2,
-//       },
-//     });
-//     const dataString = JSON.stringify(data);
-
-//     const portDir = __basedir + '/port/';
-//     // const fileName = 'test.json';
-//     const fileName = 'MississippiSmith.pdf';
-//     const filePath = portDir + fileName;
-
-//     fs.readFile(filePath, (err, data) => {
-//       if (err) {
-//         return next(err);
-//       } else {
-//         res.setHeader('Content-Type', 'application/json');
-//         res.setHeader('Content-Disposition', 'attachment; filename="' + fileName + '"');
-//         // res.send(data);
-//         res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/port/' + fileName });
-//         console.log('read the file');
-//       }
-//     });
-//     // 2) when it's done generating the file it should send it back to the frontend. maybe via a callback or something
-//     // await fs.writeFileSync(__basedir + '/port/test.json', result);
-
-//     // if (!result) {
-//     //   const error = new Error('Could not find  node');
-//     //   error.statusCode = 404;
-//     //   throw error;
-//     // }
-//     // const fileName = 'test';
-//     // send response
-//     // res.status(200).download(__basedir + '/port/test.json');
-//     // res.setHeader('Content-Type', 'application/json');
-//     // res.setHeader('Content-Disposition', 'attachment; filename="' + fileName + '"');
-//     // res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/port/' + fileName });
-//     // res.sendStatus(200);
-//     // console.log('this is where u would delete the generated file');
-//   } catch (err) {
-//     if (!err.statusCode) {
-//       err.statusCode = 500;
-//     }
-//     next(err);
-//   }
-// };
