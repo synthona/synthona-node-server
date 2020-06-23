@@ -243,6 +243,7 @@ exports.setAvatar = async (req, res, next) => {
       type: 'image',
       name: originalName,
       preview: imageUrl,
+      path: imageUrl,
       content: originalName,
       creator: userId,
     });
@@ -291,6 +292,7 @@ exports.setHeader = async (req, res, next) => {
       type: 'image',
       name: originalName,
       preview: imageUrl,
+      path: imageUrl,
       content: originalName,
       creator: userId,
     });

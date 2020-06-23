@@ -25,6 +25,10 @@ exports.createNode = async (req, res, next) => {
     const preview = req.body.preview;
     const content = req.body.content;
     const linkedNode = req.body.linkedNode ? JSON.parse(req.body.linkedNode) : null;
+    const path =
+      req.body.type === 'url' || (req.body.type === 'image' && req.body.isFile === false)
+        ? req.body.preview
+        : null;
     // userId comes from the is-auth middleware
     const userId = req.user.uid;
     // create node
@@ -34,6 +38,7 @@ exports.createNode = async (req, res, next) => {
       searchable: true,
       type: type,
       name: name,
+      path: path,
       preview: preview,
       content: content,
       creator: userId,

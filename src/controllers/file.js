@@ -34,6 +34,7 @@ exports.createFile = async (req, res, next) => {
       type: nodeType,
       name: originalName,
       preview: fileUrl,
+      path: fileUrl,
       content: originalName,
       creator: userId,
     });

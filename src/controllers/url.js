@@ -31,6 +31,7 @@ exports.createUrl = async (req, res, next) => {
       type: 'url',
       name: name,
       preview: preview,
+      path: preview,
       content: content,
       creator: userId,
     });
