@@ -392,24 +392,18 @@ exports.unpackSynthonaImport = async (req, res, next) => {
       } else if (entry.name === 'user.json') {
         console.log('user');
       }
-      // console.log(entry.name);
     }
-
     // mark the import package as expanded
-    // node.update(
-    //   {
-    //     content: { expanded: true },
-    //   },
-    //   {
-    //     where: {
-    //       uuid: packageUUID,
-    //     },
-    //   }
-    // );
-    // TODO
-
-    // await processZip;
-    // await Promise.all([processZip]);
+    node.update(
+      {
+        metadata: { expanded: true },
+      },
+      {
+        where: {
+          uuid: packageUUID,
+        },
+      }
+    );
     console.log('done');
     // send response
     res.sendStatus(200);
