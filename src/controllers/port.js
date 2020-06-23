@@ -45,7 +45,7 @@ exports.exportAllUserData = async (req, res, next) => {
         isFile: true,
         hidden: false,
         searchable: true,
-        type: 'synthona',
+        type: 'package',
         name: exportName,
         preview: 'data/' + userId + '/exports/' + exportName,
         path: 'data/' + userId + '/exports/' + exportName,
@@ -80,7 +80,7 @@ exports.exportAllUserData = async (req, res, next) => {
     const nodeData = await node.findAll({
       where: {
         creator: userId,
-        [Op.and]: [{ [Op.not]: { type: 'synthona' } }, { [Op.not]: { type: 'audio' } }],
+        [Op.and]: [{ [Op.not]: { type: 'package' } }, { [Op.not]: { type: 'audio' } }],
       },
       order: [['updatedAt', 'DESC']],
       // limit: 30,
@@ -230,6 +230,12 @@ exports.unpackSynthonaImport = async (req, res, next) => {
       where: { [Op.and]: [{ uuid: packageUUID }, { creator: userId }] },
       raw: true,
     });
+    // check that the node is not already expanded
+    if (packageNode.metadata && packageNode.metadata.expanded) {
+      err = new Error('package is already expanded');
+      err.statusCode = 500;
+      throw err;
+    }
     // get the fileUrl
     const packageUrl = packageNode.preview;
     // check zip buffer size before unzipping

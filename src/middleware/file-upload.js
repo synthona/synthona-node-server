@@ -54,8 +54,8 @@ const fileFilter = (req, file, cb) => {
     cb(null, true);
   } else if (file.mimetype === 'application/zip') {
     if (file.originalname.includes('.synth.zip')) {
-      console.log('synthona export!');
-      file.nodeType = 'synthona';
+      console.log('synthona package!');
+      file.nodeType = 'package';
     } else {
       file.nodeType = 'zip';
     }

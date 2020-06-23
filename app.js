@@ -74,7 +74,7 @@ app.use('/file', fileRoutes);
 
 // TODO: the file directory should probably require permissions per image? not sure how that should work
 app.use('/data', isAuth, express.static(path.join(__dirname, 'data'))); // file directory
-app.use('/port', isAuth, express.static(path.join(__dirname, 'port'))); // downloads directory
+// app.use('/port', isAuth, express.static(path.join(__dirname, 'port'))); // downloads directory
 app.use('/public', isAuth, express.static(path.join(__dirname, 'public')));
 
 if (debug) {
