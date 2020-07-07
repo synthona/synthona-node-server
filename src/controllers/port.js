@@ -397,7 +397,22 @@ exports.unpackSynthonaImport = async (req, res, next) => {
           );
         }
       } else if (entry.name === 'user.json') {
-        console.log('user');
+        // set up main variables for processing
+        let jsonData = JSON.parse(entry.getData());
+        let userImport = jsonData[0];
+        const updatedUser = await user.update(
+          {
+            displayName: userImport.displayName,
+            bio: userImport.bio,
+            avatar: userImport.avatar,
+            header: userImport.header,
+          },
+          {
+            where: {
+              id: userId,
+            },
+          }
+        );
       }
     }
     // mark the import package as expanded

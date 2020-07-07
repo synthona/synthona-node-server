@@ -9,6 +9,11 @@ var fs = require('fs');
 exports.cleanupDataDirectoryFromFilePath = async (filePath) => {
   var parentDirectory = filePath.substring(0, filePath.lastIndexOf('/'));
   var dataDirectory = __basedir + '/data/';
+  // if the filepath does not include the data directory path
+  // it should not recursively delete anything
+  if (!filePath.includes(dataDirectory)) {
+    return;
+  }
   // if the parentDirectory is also the dataDirectory, stop recursion
   if (parentDirectory === dataDirectory) {
     return;
