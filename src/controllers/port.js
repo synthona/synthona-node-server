@@ -80,7 +80,7 @@ exports.exportAllUserData = async (req, res, next) => {
     const nodeData = await node.findAll({
       where: {
         creator: userId,
-        [Op.and]: [{ [Op.not]: { type: 'package' } }, { [Op.not]: { type: 'audio' } }],
+        [Op.and]: [{ [Op.not]: { type: 'package' } }],
       },
       order: [['updatedAt', 'DESC']],
       // attributes: ['id', 'uuid'],
