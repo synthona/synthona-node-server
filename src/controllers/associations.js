@@ -180,17 +180,17 @@ exports.associationAutocomplete = async (req, res, next) => {
       // the most recent nodes by default
       orderStatement = [['updatedAt', 'DESC']];
     }
-    // don't fetch hidden nodes unless
-    // the node in question is also hidden
-    // and was created by the logged in user
+    // don't fetch hidden/searchable nodes unless
+    // the node in question is also hidden/searchable
     if (!specificNode.searchable) {
-      whereStatement[Op.and].push(
-        {
-          searchable: { [Op.not]: true },
-        }
-        // this is not needed since it is added below
-        // { creator: userId }
-      );
+      whereStatement[Op.and].push({
+        searchable: false,
+      });
+    }
+    if (!specificNode.hidden) {
+      whereStatement[Op.and].push({
+        hidden: false,
+      });
     }
     // limit results to those created by yourself????
     // TODO: revisit this and think about how it works on multiuser server
