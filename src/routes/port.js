@@ -13,10 +13,10 @@ const router = express.Router();
 router.post('/export/all', isAuth, portController.exportAllUserData);
 
 router.post(
-  '/export/collection',
+  '/export',
   isAuth,
   [body('uuid').exists().isUUID()],
-  portController.exportCollection
+  portController.exportFromAnchorUUID
 );
 
 // import a synthona package

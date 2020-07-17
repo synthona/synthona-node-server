@@ -28,7 +28,7 @@ exports.exportAllUserData = async (req, res, next) => {
       fs.mkdirSync('data/' + userId + '/exports/');
     }
     // set export name and extension
-    const exportName = new Date().getTime() + '.synth';
+    const exportName = new Date().toDateString() + '.synth';
     const exportDest = __basedir + '/data/' + userId + '/exports/' + exportName;
     // create a file to stream archive data to.
     var output = fs.createWriteStream(exportDest);
@@ -143,8 +143,7 @@ exports.exportAllUserData = async (req, res, next) => {
   }
 };
 
-exports.exportCollection = async (req, res, next) => {
-  console.log('export collection');
+exports.exportFromAnchorUUID = async (req, res, next) => {
   // this comes from the is-auth middleware
   const userId = req.user.uid;
   try {
@@ -163,7 +162,6 @@ exports.exportCollection = async (req, res, next) => {
     // get the values out of the query
     const exportAnchorUUID = req.body.uuid;
     const includeAnchorNode = true;
-    console.log(exportAnchorUUID);
 
     // get the list of nodes so the ids can be put into a
     //  list for the followup query
@@ -621,7 +619,6 @@ exports.unpackSynthonaImport = async (req, res, next) => {
         },
       }
     );
-    console.log('done');
     // send response
     res.sendStatus(200);
   } catch (err) {
