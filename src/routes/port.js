@@ -12,11 +12,20 @@ const router = express.Router();
 // generate a user-data export
 router.post('/export/all', isAuth, portController.exportAllUserData);
 
+router.post(
+  '/export/collection',
+  isAuth,
+  [body('uuid').exists().isUUID(), body('exportName').optional().isString()],
+  portController.exportCollection
+);
+
 // import a synthona package
-router.post('/import', isAuth, [
-  body('uuid').exists().isUUID(),
-  portController.unpackSynthonaImport,
-]);
+router.post(
+  '/import',
+  isAuth,
+  [body('uuid').exists().isUUID()],
+  portController.unpackSynthonaImport
+);
 
 // request a single export by the associated uuid
 // router.get('/exports/', [query('uuid').exists().isUUID()], isAuth, portController.getExportByUUID);

@@ -83,7 +83,6 @@ exports.exportAllUserData = async (req, res, next) => {
         [Op.and]: [{ [Op.not]: { type: 'package' } }, { [Op.not]: { type: 'audio' } }],
       },
       order: [['updatedAt', 'DESC']],
-      // limit: 30,
       // attributes: ['id', 'uuid'],
       // include the associations
       include: [
@@ -105,81 +104,19 @@ exports.exportAllUserData = async (req, res, next) => {
             'createdAt',
           ],
         },
-        // {
-        //   model: association,
-        //   where: { creator: userId },
-        //   required: false,
-        //   as: 'associated',
-        //   attributes: [
-        //     'id',
-        //     'nodeId',
-        //     'nodeUUID',
-        //     'nodeType',
-        //     'linkedNode',
-        //     'linkedNodeUUID',
-        //     'linkedNodeType',
-        //     'linkStrength',
-        //     'updatedAt',
-        //     'createdAt',
-        //   ],
-        // },
       ],
     });
     // loop through all nodes
-    let nodeIdList = [];
-    let exportJSON = [];
-    // clean up and organize data for export
     await nodeData.forEach((node) => {
       // add associated files to the export
-      if (!nodeIdList.includes(node.id)) {
-        // if the node is a file, add the file to the export
-        if (node.isFile) {
-          let extension = node.preview.substr(node.preview.lastIndexOf('.'));
-          // append the associated file to the export
-          archive.append(fs.createReadStream(node.preview), { name: node.uuid + extension });
-        }
-        var associationList = [];
-        var exportNode = node;
-        // copy the "includes" data into a single location
-        if (node.associated) {
-          associationList.push(node.associated.dataValues);
-          exportNode.dataValues['associationList'] = associationList;
-          // clear associated property now that it is not needed
-          delete exportNode.associated.dataValues;
-        }
-        if (node.original) {
-          associationList.push(node.original.dataValues);
-          exportNode.dataValues['associationList'] = associationList;
-          // clear original property now that it is not needed
-          delete exportNode.original.dataValues;
-        }
-        // add the id onto the nodeIdList counter
-        nodeIdList.push(node.id);
-        // add the node to the exportJSON
-        exportJSON.push(exportNode);
-      } else {
-        // if the node is a duplicate add its associations onto the first occurance of it.
-        // since this is a duplicate, we can get the duplicateNode from exportJSON via the nodeIdList index
-        // as it has already been stored there, and the nodeIdList index aligns with the exportJSON index
-        // since they have both been written to the same amount of times in the same order
-        let exportNode = exportJSON[nodeIdList.indexOf(node.id)];
-        var associationList = exportNode.dataValues['associationList'] || [];
-        // exportNode is the pre-existing node which we are tacking
-        // the associations onto since they don't come this way from the DB
-        if (exportNode.id === node.id) {
-          if (node.associated) {
-            associationList.push(node.associated.dataValues);
-            exportNode.dataValues['associationList'] = associationList;
-          }
-          if (node.original) {
-            associationList.push(node.original.dataValues);
-            exportNode.dataValues['associationList'] = associationList;
-          }
-        }
+      if (node.isFile) {
+        let extension = node.preview.substr(node.preview.lastIndexOf('.'));
+        // append the associated file to the export
+        archive.append(fs.createReadStream(node.preview), { name: node.uuid + extension });
       }
     });
     // stringify JSON
-    const nodeString = JSON.stringify(exportJSON);
+    const nodeString = JSON.stringify(nodeData);
     // append a file containing the nodeData
     archive.append(nodeString, { name: '/db/nodes.json' });
     // load in the user export-data from the database
@@ -198,6 +135,302 @@ exports.exportAllUserData = async (req, res, next) => {
     // finalize the archive (ie we are done appending files but streams have to finish yet)
     // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
     console.log('finalizing');
+    archive.finalize();
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.exportCollection = async (req, res, next) => {
+  console.log('export collection');
+  // this comes from the is-auth middleware
+  const userId = req.user.uid;
+  try {
+    // catch validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error('Validation Failed');
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    // generate export directory if it does not exist
+    if (!fs.existsSync('data/' + userId + '/exports/')) {
+      fs.mkdirSync('data/' + userId + '/exports/');
+    }
+    // get the values out of the query
+    const exportAnchorUUID = req.body.uuid;
+    const includeAnchorNode = true;
+    console.log(exportAnchorUUID);
+
+    // get the list of nodes so the ids can be put into a
+    //  list for the followup query
+    const nodeIdListQuery = await node.findAll({
+      where: {
+        uuid: exportAnchorUUID,
+        creator: userId,
+      },
+      attributes: ['id', 'name'],
+      include: [
+        {
+          model: node,
+          as: 'left',
+          attributes: ['id', 'name'],
+        },
+        {
+          model: node,
+          as: 'right',
+          attributes: ['id', 'name'],
+        },
+      ],
+    });
+
+    // create a list of exported IDS so incomplete
+    // associations can be removed from the export
+    const exportIdList = [];
+    let anchorNodeId = null;
+    let anchorNodeName = '';
+    for (let node of nodeIdListQuery) {
+      if (node.left) {
+        for (let leftNode of node.left) {
+          exportIdList.push(leftNode.id);
+        }
+      }
+      if (node.right) {
+        for (let rightNode of node.right) {
+          exportIdList.push(rightNode.id);
+        }
+      }
+      // set anchorNodeName
+      anchorNodeName = node.name;
+      // add the anchorNode
+      exportIdList.push(node.id);
+      anchorNodeId = node.id;
+    }
+    // set export name and extension
+    const exportName = req.body.exportName
+      ? req.body.exportName.trim() + '.synth.zip'
+      : anchorNodeName + '.synth.zip';
+    const exportDest = __basedir + '/data/' + userId + '/exports/' + exportName;
+    // create a file to stream archive data to.
+    var output = fs.createWriteStream(exportDest);
+    var archive = archiver('zip', {
+      zlib: { level: 9 }, // Sets the compression level.
+    });
+    // listen for all archive data to be written
+    // 'close' event is fired only when a file descriptor is involved
+    output.on('close', async () => {
+      console.log(archive.pointer() + ' total bytes');
+      console.log('archiver has been finalized and the output file descriptor has closed.');
+      // create node when the export is done
+      await node.create({
+        isFile: true,
+        hidden: false,
+        searchable: true,
+        type: 'package',
+        name: exportName,
+        preview: 'data/' + userId + '/exports/' + exportName,
+        path: 'data/' + userId + '/exports/' + exportName,
+        content: exportName,
+        creator: userId,
+      });
+      // TODO: send back the created export to the client as a file
+      res.sendStatus(200);
+    });
+
+    // // This event is fired when the data source is drained no matter what was the data source.
+    output.on('end', function () {
+      console.log('Data has been drained');
+    });
+
+    // good practice to catch warnings (ie stat failures and other non-blocking errors)
+    archive.on('warning', function (err) {
+      if (err.code === 'ENOENT') {
+        // log warning
+      } else {
+        // throw error
+        throw err;
+      }
+    });
+    // // good practice to catch this error explicitly
+    archive.on('error', function (err) {
+      throw err;
+    });
+
+    const exportData = await node.findAll({
+      where: {
+        uuid: exportAnchorUUID,
+        creator: userId,
+      },
+      include: [
+        {
+          model: node,
+          required: false,
+          as: 'right',
+          include: [
+            {
+              model: association,
+              as: 'original',
+              required: false,
+              attributes: [
+                'id',
+                'nodeId',
+                'nodeUUID',
+                'nodeType',
+                'linkedNode',
+                'linkedNodeUUID',
+                'linkedNodeType',
+                'linkStrength',
+                'updatedAt',
+                'createdAt',
+              ],
+              where: {
+                [Op.and]: [
+                  { nodeId: { [Op.in]: exportIdList } },
+                  { linkedNode: { [Op.in]: exportIdList } },
+                ],
+              },
+            },
+            // {
+            //   model: association,
+            //   as: 'associated',
+            //   required: false,
+            //   where: {
+            //     [Op.and]: [
+            //       { nodeId: { [Op.in]: exportIdList } },
+            //       { linkedNode: { [Op.in]: exportIdList } },
+            //       { nodeId: { [Op.not]: anchorNodeId } },
+            //       { linkedNode: { [Op.not]: anchorNodeId } },
+            //     ],
+            //   },
+            // },
+          ],
+          // attributes: ['id', 'uuid', 'isFile', 'type', 'preview', 'name'],
+        },
+        {
+          model: node,
+          required: false,
+          as: 'left',
+          include: [
+            {
+              model: association,
+              attributes: [
+                'id',
+                'nodeId',
+                'nodeUUID',
+                'nodeType',
+                'linkedNode',
+                'linkedNodeUUID',
+                'linkedNodeType',
+                'linkStrength',
+                'updatedAt',
+                'createdAt',
+              ],
+              as: 'original',
+              required: false,
+              where: {
+                [Op.and]: [
+                  { nodeId: { [Op.in]: exportIdList } },
+                  { linkedNode: { [Op.in]: exportIdList } },
+                ],
+              },
+            },
+            // {
+            //   model: association,
+            //   as: 'associated',
+            //   required: false,
+            //   where: {
+            //     [Op.and]: [
+            //       { nodeId: { [Op.in]: exportIdList } },
+            //       { linkedNode: { [Op.in]: exportIdList } },
+            //       { nodeId: { [Op.not]: anchorNodeId } },
+            //       { linkedNode: { [Op.not]: anchorNodeId } },
+            //     ],
+            //   },
+            // },
+          ],
+          // attributes: ['id', 'uuid', 'isFile', 'type', 'preview', 'name'],
+        },
+        {
+          model: association,
+          attributes: [
+            'id',
+            'nodeId',
+            'nodeUUID',
+            'nodeType',
+            'linkedNode',
+            'linkedNodeUUID',
+            'linkedNodeType',
+            'linkStrength',
+            'updatedAt',
+            'createdAt',
+          ],
+          required: false,
+          as: 'original',
+        },
+      ],
+    });
+
+    // loop through the data to restructure it into the export format
+    const exportJSON = [];
+    let anchorNode = null;
+    for (let node of exportData) {
+      anchorNode = node;
+      if (node.left) {
+        for (let leftNode of node.left) {
+          if (leftNode.isFile) {
+            let extension = leftNode.preview.substr(leftNode.preview.lastIndexOf('.'));
+            // append the associated file to the export
+            archive.append(fs.createReadStream(leftNode.preview), {
+              name: leftNode.uuid + extension,
+            });
+          }
+          exportJSON.push(leftNode);
+          delete leftNode.dataValues.association;
+        }
+        // remove these values so they are not duplicated in the export
+        delete anchorNode.dataValues.left;
+      }
+      if (node.right) {
+        for (let rightNode of node.right) {
+          if (rightNode.isFile) {
+            let extension = rightNode.preview.substr(rightNode.preview.lastIndexOf('.'));
+            // append the associated file to the export
+            archive.append(fs.createReadStream(rightNode.preview), {
+              name: rightNode.uuid + extension,
+            });
+          }
+          exportJSON.push(rightNode);
+          delete rightNode.dataValues.association;
+        }
+        // remove these values so they are not duplicated in the export
+        delete anchorNode.dataValues.right;
+      }
+      // add the anchor node
+      if (includeAnchorNode) {
+        if (anchorNode.isFile) {
+          let extension = anchorNode.preview.substr(anchorNode.preview.lastIndexOf('.'));
+          // append the associated file to the export
+          archive.append(fs.createReadStream(anchorNode.preview), {
+            name: anchorNode.uuid + extension,
+          });
+        }
+        exportJSON.push(anchorNode);
+      }
+    }
+    // stringify JSON
+    const nodeString = JSON.stringify(exportJSON);
+    // append a file containing the nodeData
+    archive.append(nodeString, { name: '/db/nodes.json' });
+    // pipe archive data to the file
+    archive.pipe(output);
+    // finalize the archive (ie we are done appending files but streams have to finish yet)
+    // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
+    console.log('finalizing');
+    // res.status(200).json({ node: exportJSON });
     archive.finalize();
   } catch (err) {
     if (!err.statusCode) {
@@ -346,9 +579,9 @@ exports.unpackSynthonaImport = async (req, res, next) => {
             });
           }
           // if the node in question has associations, process them
-          if (nodeImport.associationList) {
-            // loop through the associationList for the current node from the JSON file
-            for (associationImport of nodeImport.associationList) {
+          if (nodeImport.original) {
+            // loop through the associations for the current node from the JSON file
+            for (associationImport of nodeImport.original) {
               // create the association as-it-appears, but set the
               // nodeId and nodeUUID to the new values. linkedNode
               // and linkedNodeUUID will temporarily have the wrong values. this will
@@ -368,8 +601,8 @@ exports.unpackSynthonaImport = async (req, res, next) => {
               });
             }
           }
-          // store the old and new UUIDs and IDs here to be
-          // re-processed in the final passthrough
+          // store the old and new UUIDs and IDs here to be re-processed
+          // with the linkedNode and linkedNodeUUID columns at the end
           newNodeIdList.push({
             oldId: nodeImport.id,
             oldUUID: nodeImport.uuid,

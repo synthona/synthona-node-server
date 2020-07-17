@@ -104,6 +104,7 @@ exports.getNodeByUUID = async (req, res, next) => {
         'isFile',
         'hidden',
         'searchable',
+        'comment',
         'type',
         'name',
         'preview',

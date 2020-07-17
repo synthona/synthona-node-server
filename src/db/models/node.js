@@ -100,18 +100,46 @@ module.exports = (sequelize, DataTypes) => {
   node.associate = function (models) {
     // associations can be defined here
     node.belongsTo(models.user, { constraints: false, foreignKey: 'creator' });
-    node.belongsTo(models.association, {
+    node.hasMany(models.association, {
       as: 'original',
       constraints: false,
-      foreignKey: 'id',
-      targetKey: 'nodeId',
+      foreignKey: 'nodeId',
+      // foreignKey: 'id',
+      // targetKey: 'nodeId',
     });
-    node.belongsTo(models.association, {
+    node.hasMany(models.association, {
       as: 'associated',
       constraints: false,
-      foreignKey: 'id',
-      targetKey: 'linkedNode',
+      // foreignKey: 'id',
+      // targetKey: 'linkedNode',
+      foreignKey: 'linkedNode',
     });
+    node.belongsToMany(node, {
+      through: models.association,
+      as: 'left',
+      foreignKey: 'nodeId',
+      otherKey: 'linkedNode',
+      constraints: false,
+    });
+    node.belongsToMany(node, {
+      through: models.association,
+      as: 'right',
+      foreignKey: 'linkedNode',
+      otherKey: 'nodeId',
+      constraints: false,
+    });
+    // node.belongsTo(models.association, {
+    //   as: 'original',
+    //   constraints: false,
+    //   foreignKey: 'id',
+    //   targetKey: 'nodeId',
+    // });
+    // node.belongsTo(models.association, {
+    //   as: 'associated',
+    //   constraints: false,
+    //   foreignKey: 'id',
+    //   targetKey: 'linkedNode',
+    // });
     node.hasOne(models.user, { foreignKey: 'nodeId', sourceKey: 'id' });
   };
   return node;
