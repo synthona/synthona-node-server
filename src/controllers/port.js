@@ -38,8 +38,8 @@ exports.exportAllUserData = async (req, res, next) => {
     // listen for all archive data to be written
     // 'close' event is fired only when a file descriptor is involved
     output.on('close', async () => {
-      console.log(archive.pointer() + ' total bytes');
-      console.log('archiver has been finalized and the output file descriptor has closed.');
+      // console.log(archive.pointer() + ' total bytes');
+      // console.log('archiver has been finalized and the output file descriptor has closed.');
       // create node when the export is done
       await node.create({
         isFile: true,
@@ -58,7 +58,7 @@ exports.exportAllUserData = async (req, res, next) => {
 
     // This event is fired when the data source is drained no matter what was the data source.
     output.on('end', function () {
-      console.log('Data has been drained');
+      // console.log('Data has been exported');
     });
 
     // good practice to catch warnings (ie stat failures and other non-blocking errors)
@@ -134,7 +134,6 @@ exports.exportAllUserData = async (req, res, next) => {
     archive.pipe(output);
     // finalize the archive (ie we are done appending files but streams have to finish yet)
     // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
-    console.log('finalizing');
     archive.finalize();
   } catch (err) {
     if (!err.statusCode) {
@@ -205,15 +204,13 @@ exports.exportCollection = async (req, res, next) => {
         }
       }
       // set anchorNodeName
-      anchorNodeName = node.name;
+      anchorNodeName = node.name.trim();
       // add the anchorNode
       exportIdList.push(node.id);
       anchorNodeId = node.id;
     }
     // set export name and extension
-    const exportName = req.body.exportName
-      ? req.body.exportName.trim() + '.synth'
-      : anchorNodeName + '.synth';
+    const exportName = anchorNodeName + '.synth';
     const exportDest = __basedir + '/data/' + userId + '/exports/' + exportName;
     // create a file to stream archive data to.
     var output = fs.createWriteStream(exportDest);
@@ -223,8 +220,8 @@ exports.exportCollection = async (req, res, next) => {
     // listen for all archive data to be written
     // 'close' event is fired only when a file descriptor is involved
     output.on('close', async () => {
-      console.log(archive.pointer() + ' total bytes');
-      console.log('archiver has been finalized and the output file descriptor has closed.');
+      // console.log(archive.pointer() + ' total bytes');
+      // console.log('archiver has been finalized and the output file descriptor has closed.');
       // create node when the export is done
       await node.create({
         isFile: true,
@@ -243,7 +240,7 @@ exports.exportCollection = async (req, res, next) => {
 
     // // This event is fired when the data source is drained no matter what was the data source.
     output.on('end', function () {
-      console.log('Data has been drained');
+      // console.log('export created');
     });
 
     // good practice to catch warnings (ie stat failures and other non-blocking errors)
@@ -293,21 +290,7 @@ exports.exportCollection = async (req, res, next) => {
                 ],
               },
             },
-            // {
-            //   model: association,
-            //   as: 'associated',
-            //   required: false,
-            //   where: {
-            //     [Op.and]: [
-            //       { nodeId: { [Op.in]: exportIdList } },
-            //       { linkedNode: { [Op.in]: exportIdList } },
-            //       { nodeId: { [Op.not]: anchorNodeId } },
-            //       { linkedNode: { [Op.not]: anchorNodeId } },
-            //     ],
-            //   },
-            // },
           ],
-          // attributes: ['id', 'uuid', 'isFile', 'type', 'preview', 'name'],
         },
         {
           model: node,
@@ -337,21 +320,7 @@ exports.exportCollection = async (req, res, next) => {
                 ],
               },
             },
-            // {
-            //   model: association,
-            //   as: 'associated',
-            //   required: false,
-            //   where: {
-            //     [Op.and]: [
-            //       { nodeId: { [Op.in]: exportIdList } },
-            //       { linkedNode: { [Op.in]: exportIdList } },
-            //       { nodeId: { [Op.not]: anchorNodeId } },
-            //       { linkedNode: { [Op.not]: anchorNodeId } },
-            //     ],
-            //   },
-            // },
           ],
-          // attributes: ['id', 'uuid', 'isFile', 'type', 'preview', 'name'],
         },
         {
           model: association,
@@ -428,8 +397,6 @@ exports.exportCollection = async (req, res, next) => {
     archive.pipe(output);
     // finalize the archive (ie we are done appending files but streams have to finish yet)
     // 'close', 'end' or 'finish' may be fired right after calling this method so register to them beforehand
-    console.log('finalizing');
-    // res.status(200).json({ node: exportJSON });
     archive.finalize();
   } catch (err) {
     if (!err.statusCode) {

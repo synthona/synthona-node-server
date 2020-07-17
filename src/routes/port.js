@@ -15,7 +15,7 @@ router.post('/export/all', isAuth, portController.exportAllUserData);
 router.post(
   '/export/collection',
   isAuth,
-  [body('uuid').exists().isUUID(), body('exportName').optional().isString()],
+  [body('uuid').exists().isUUID()],
   portController.exportCollection
 );
 
