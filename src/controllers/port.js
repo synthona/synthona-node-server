@@ -496,10 +496,8 @@ exports.unpackSynthonaImport = async (req, res, next) => {
             // generate node
             newNode = await node.create({
               isFile: nodeImport.isFile,
-              // hidden: nodeImport.hidden,
-              hidden: false,
-              // searchable: nodeImport.searchable,
-              searchable: true,
+              hidden: nodeImport.hidden,
+              searchable: nodeImport.searchable,
               type: nodeImport.type,
               name: nodeImport.name,
               preview: nodeImport.preview,
@@ -556,10 +554,8 @@ exports.unpackSynthonaImport = async (req, res, next) => {
             // generate node
             newNode = await node.create({
               isFile: nodeImport.isFile,
-              // hidden: nodeImport.hidden,
-              hidden: false,
-              // searchable: nodeImport.searchable,
-              searchable: true,
+              hidden: nodeImport.hidden,
+              searchable: nodeImport.searchable,
               type: nodeImport.type,
               name: nodeImport.name,
               preview:
