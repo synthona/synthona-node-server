@@ -53,7 +53,7 @@ const fileFilter = (req, file, cb) => {
     file.nodeType = 'audio';
     cb(null, true);
   } else if (file.mimetype === 'application/zip') {
-    if (file.originalname.includes('.synth.zip')) {
+    if (file.originalname.includes('.synth')) {
       console.log('synthona package!');
       file.nodeType = 'package';
     } else {

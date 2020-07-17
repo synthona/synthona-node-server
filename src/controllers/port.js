@@ -28,7 +28,7 @@ exports.exportAllUserData = async (req, res, next) => {
       fs.mkdirSync('data/' + userId + '/exports/');
     }
     // set export name and extension
-    const exportName = new Date().getTime() + '.synth.zip';
+    const exportName = new Date().getTime() + '.synth';
     const exportDest = __basedir + '/data/' + userId + '/exports/' + exportName;
     // create a file to stream archive data to.
     var output = fs.createWriteStream(exportDest);
@@ -212,8 +212,8 @@ exports.exportCollection = async (req, res, next) => {
     }
     // set export name and extension
     const exportName = req.body.exportName
-      ? req.body.exportName.trim() + '.synth.zip'
-      : anchorNodeName + '.synth.zip';
+      ? req.body.exportName.trim() + '.synth'
+      : anchorNodeName + '.synth';
     const exportDest = __basedir + '/data/' + userId + '/exports/' + exportName;
     // create a file to stream archive data to.
     var output = fs.createWriteStream(exportDest);
@@ -259,7 +259,6 @@ exports.exportCollection = async (req, res, next) => {
     archive.on('error', function (err) {
       throw err;
     });
-
     const exportData = await node.findAll({
       where: {
         uuid: exportAnchorUUID,
