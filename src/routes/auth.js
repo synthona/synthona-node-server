@@ -10,7 +10,7 @@ const isAuth = require('../middleware/is-auth');
 // set up router
 const router = express.Router();
 
-router.post(
+router.put(
   '/signup',
   [
     body('email')
@@ -21,19 +21,15 @@ router.post(
       .custom((value, { req }) => {
         return user
           .findOne({
-            where: { email: value }
+            where: { email: value },
           })
-          .then(user => {
+          .then((user) => {
             if (user) {
               return Promise.reject('Email address already exists!');
             }
           });
       }),
-    body('password')
-      .exists()
-      .isString()
-      .trim()
-      .isLength({ min: 5 }),
+    body('password').exists().isString().trim().isLength({ min: 5 }),
     body('username')
       .exists()
       .isString()
@@ -41,29 +37,23 @@ router.post(
       .custom((value, { req }) => {
         return user
           .findOne({
-            where: { username: value }
+            where: { username: value },
           })
-          .then(user => {
+          .then((user) => {
             if (user) {
               return Promise.reject('User already exists!');
             }
           });
-      })
+      }),
   ],
   authController.signup
 );
 
-router.post(
+router.put(
   '/login',
   [
-    body('email')
-      .exists()
-      .isEmail()
-      .normalizeEmail(),
-    body('password')
-      .trim()
-      .isString()
-      .isLength({ min: 5 })
+    body('email').exists().isEmail().normalizeEmail(),
+    body('password').trim().isString().isLength({ min: 5 }),
   ],
   authController.login
 );
@@ -72,15 +62,8 @@ router.patch(
   '/password',
   isAuth,
   [
-    body('oldPassword')
-      .exists()
-      .trim()
-      .isString(),
-    body('newPassword')
-      .exists()
-      .trim()
-      .isString()
-      .isLength({ min: 5 })
+    body('oldPassword').exists().trim().isString(),
+    body('newPassword').exists().trim().isString().isLength({ min: 5 }),
   ],
   authController.changePassword
 );

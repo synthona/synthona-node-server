@@ -10,25 +10,12 @@ const isAuth = require('../middleware/is-auth');
 const router = express.Router();
 
 // Create collection
-router.post(
+router.put(
   '/',
   isAuth,
   [body('name').exists().isString(), body('content').optional().isString()],
   collectionController.createCollection
 );
-
-// // Get collection list by id
-// router.get(
-//   '/',
-//   isAuth,
-//   [
-//     body('nodeId')
-//       .exists()
-//       .isNumeric()
-//   ],
-//   collectionController.getCollection
-// );
-// );
 
 // return the router
 module.exports = router;

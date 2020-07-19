@@ -10,7 +10,7 @@ const isAuth = require('../middleware/is-auth');
 const router = express.Router();
 
 // create a new node
-router.post(
+router.put(
   '/',
   isAuth,
   [

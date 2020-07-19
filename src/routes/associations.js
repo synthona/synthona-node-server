@@ -10,7 +10,7 @@ const isAuth = require('../middleware/is-auth');
 const router = express.Router();
 
 // Create association
-router.post(
+router.put(
   '/',
   isAuth,
   [body('nodeUUID').exists().isUUID(), body('linkedNodeUUID').exists().isUUID()],
@@ -42,7 +42,7 @@ router.get(
 );
 
 // update link strength
-router.post(
+router.put(
   '/linkstrength',
   isAuth,
   [body('nodeA').exists().isUUID(), body('nodeB').exists().isUUID()],

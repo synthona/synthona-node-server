@@ -11,7 +11,7 @@ const fileUpload = require('../middleware/file-upload');
 const router = express.Router();
 
 // upload a file
-router.post(
+router.put(
   '/',
   isAuth,
   [body('name').optional().isString(), body('linkedNode').optional().isJSON()],

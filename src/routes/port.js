@@ -10,9 +10,9 @@ const isAuth = require('../middleware/is-auth');
 const router = express.Router();
 
 // generate a user-data export
-router.post('/export/all', isAuth, portController.exportAllUserData);
+router.put('/export/all', isAuth, portController.exportAllUserData);
 
-router.post(
+router.put(
   '/export',
   isAuth,
   [body('uuid').exists().isUUID()],
@@ -20,15 +20,12 @@ router.post(
 );
 
 // import a synthona package
-router.post(
+router.put(
   '/import',
   isAuth,
   [body('uuid').exists().isUUID()],
   portController.unpackSynthonaImport
 );
-
-// request a single export by the associated uuid
-// router.get('/exports/', [query('uuid').exists().isUUID()], isAuth, portController.getExportByUUID);
 
 // return the router
 module.exports = router;

@@ -7,7 +7,6 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-// const csurf = require('csurf');
 // import database info.
 const db = require('./src/db/models');
 // import routes
@@ -42,10 +41,6 @@ const app = express();
 // remove x-powered-by message for additional security.
 app.disable('x-powered-by');
 
-// include contrib middleware.
-app.use(bodyParser.json({ limit: '1mb' })); // for application/json
-app.use(cookieParser()); // for cookies
-
 // Add headers (NOTE!!!!!! I should probably be using the CORS middleware package for this instead of what im doing here)
 app.use((req, res, next) => {
   // disable cors (second parameter is a string for which URLs. * is for all, possible to seperate with commas within the string)
@@ -60,6 +55,10 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   next();
 });
+
+// include contrib middleware.
+app.use(bodyParser.json({ limit: '1mb' })); // for application/json
+app.use(cookieParser()); // for cookies
 
 // set up routes
 app.use('/node', nodeRoutes);

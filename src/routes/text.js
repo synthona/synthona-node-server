@@ -10,7 +10,7 @@ const router = express.Router();
 
 // Create text node
 // TODO: add custom check to make sure it is a quilljs delta
-router.post(
+router.put(
   '/',
   isAuth,
   [body('content').exists().isJSON(), body('name').optional().isString()],
