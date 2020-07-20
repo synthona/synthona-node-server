@@ -189,7 +189,7 @@ exports.updateNode = async (req, res, next) => {
     existingNode.searchable =
       typeof req.body.searchable === 'boolean' ? req.body.searchable : existingNode.searchable;
     // save and store result
-    const result = await existingNode.save();
+    const result = await existingNode.save({ silent: true });
     // it's an file, re-apply the baseURL
     if (result.isFile) {
       const fullUrl = result.preview

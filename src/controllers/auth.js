@@ -43,11 +43,14 @@ exports.signup = async (req, res, next) => {
     });
     // generate token
     const token = tokens.generateToken(account);
+    const refreshToken = tokens.generateRefreshToken(account);
     // set the jwt cookie
     if (!process.env.PRODUCTION) {
       res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: true });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: true });
     } else {
       res.cookie('jwt', token);
+      res.cookie('refreshToken', refreshToken);
     }
     // create node in the context system
     await context.createNode(account, 'user');
@@ -100,11 +103,14 @@ exports.login = async (req, res, next) => {
     }
     // generate token
     const token = tokens.generateToken(account);
+    const refreshToken = tokens.generateRefreshToken(account);
     // set the jwt cookie
     if (!process.env.PRODUCTION) {
       res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: true });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: true });
     } else {
       res.cookie('jwt', token);
+      res.cookie('refreshToken', refreshToken);
     }
     // send response
     res.status(201).json({
@@ -161,11 +167,14 @@ exports.changePassword = async (req, res, next) => {
     const result = await account.save();
     // generate new token
     const newToken = tokens.generateToken(result);
+    const newRefreshToken = tokens.generateRefreshToken(account);
     // set the jwt cookie
     if (!process.env.PRODUCTION) {
       res.cookie('jwt', newToken, { httpOnly: true, secure: true, sameSite: true });
+      res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: true });
     } else {
       res.cookie('jwt', newToken);
+      res.cookie('refreshToken', newRefreshToken);
     }
     // send the response
     res.sendStatus(200);
@@ -177,11 +186,8 @@ exports.changePassword = async (req, res, next) => {
   }
 };
 
-exports.refreshAuth = async (req, res, next) => {
-  // NOTE: this info is generated server side in is-auth.js
-  // so doesn't need to be validated here
+exports.isAuthenticated = async (req, res, next) => {
   const uid = req.user.uid;
-  const token = req.user.token;
   try {
     const account = await user.findOne({
       where: { id: uid },
@@ -191,20 +197,8 @@ exports.refreshAuth = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    // note: right here is where i would probably send a refresh token??? or
-    // i could just send it in isAuth??
-
-    // NOTE!!!! i probably should not actually call the token "jwt" i should name it
-    // something else
-    // set the jwt cookie
-    if (!process.env.PRODUCTION) {
-      res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: true });
-    } else {
-      res.cookie('jwt', token);
-    }
     // send reponse
     res.status(201).json({
-      // uid: account.id,
       email: account.email,
       username: account.username,
       displayName: account.displayName,
@@ -222,5 +216,6 @@ exports.refreshAuth = async (req, res, next) => {
 
 exports.signOut = (req, res, next) => {
   res.clearCookie('jwt');
+  res.clearCookie('refreshToken');
   res.sendStatus(200);
 };

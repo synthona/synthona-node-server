@@ -68,7 +68,7 @@ router.patch(
   authController.changePassword
 );
 
-router.get('/refresh', isAuth, authController.refreshAuth);
+router.get('/', isAuth, authController.isAuthenticated);
 
 router.get('/signout', isAuth, authController.signOut);
 
