@@ -111,8 +111,14 @@ exports.exportAllUserData = async (req, res, next) => {
       // add associated files to the export
       if (node.isFile) {
         let extension = node.preview.substr(node.preview.lastIndexOf('.'));
-        // append the associated file to the export
-        archive.append(fs.createReadStream(node.preview), { name: node.uuid + extension });
+        if (fs.existsSync(node.preview)) {
+          try {
+            // append the associated file to the export
+            archive.append(fs.createReadStream(node.preview), { name: node.uuid + extension });
+          } catch (err) {
+            console.log(node.preview + ' error');
+          }
+        }
       }
     });
     // stringify JSON
