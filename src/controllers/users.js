@@ -1,8 +1,12 @@
+const path = require('path');
+var fs = require('fs');
 // import packages
 const { validationResult } = require('express-validator/check');
 const context = require('../util/context');
 // bring in data models.
 const { user, node } = require('../db/models');
+// bring in util functions
+const fileData = require('../util/filedata');
 
 // load a single user by Username
 exports.getUserByUsername = async (req, res, next) => {
@@ -234,19 +238,6 @@ exports.setAvatar = async (req, res, next) => {
     const userId = req.user.uid;
     // process request
     const imageUrl = req.file.path;
-    const originalName = req.file.originalname;
-    // create node in the context system
-    const imageNode = await node.create({
-      isFile: true,
-      hidden: false,
-      searchable: true,
-      type: 'image',
-      name: originalName,
-      preview: imageUrl,
-      path: imageUrl,
-      content: originalName,
-      creator: userId,
-    });
     // load user
     const userNode = await user.findByPk(userId);
     // check for errors
@@ -255,12 +246,20 @@ exports.setAvatar = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    // i think it's bad practice to have to calculate the avatar URL on the fly like this?
-    // im not sure how best to do this for the long term tbh.
-    userNode.avatar = imageNode.preview;
+    // delete the old file
+    var filePath = path.join(__basedir, userNode.avatar);
+    // remove the file if it exists
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      // clean up any empty folders created by this deletion
+      fileData.cleanupDataDirectoryFromFilePath(filePath);
+    }
+    // update the header url
+    userNode.avatar = imageUrl;
     const result = await userNode.save();
+    const avatarUrl = req.protocol + '://' + req.get('host') + '/' + result.avatar;
     // send response
-    res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/' + result.avatar });
+    res.status(200).json({ url: avatarUrl });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;
@@ -283,19 +282,6 @@ exports.setHeader = async (req, res, next) => {
     const userId = req.user.uid;
     // process request
     const imageUrl = req.file.path;
-    const originalName = req.file.originalname;
-    // create node in the context system
-    const imageNode = await node.create({
-      isFile: true,
-      hidden: false,
-      searchable: true,
-      type: 'image',
-      name: originalName,
-      preview: imageUrl,
-      path: imageUrl,
-      content: originalName,
-      creator: userId,
-    });
     // load user
     const userNode = await user.findByPk(userId);
     // check for errors
@@ -304,12 +290,20 @@ exports.setHeader = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    // i think it's bad practice to have to calculate the avatar URL on the fly like this?
-    // im not sure how best to do this for the long term tbh.
-    userNode.header = imageNode.preview;
+    // delete the old file
+    var filePath = path.join(__basedir, userNode.header);
+    // remove the file if it exists
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      // clean up any empty folders created by this deletion
+      fileData.cleanupDataDirectoryFromFilePath(filePath);
+    }
+    // update the header url
+    userNode.header = imageUrl;
     const result = await userNode.save();
+    const headerUrl = req.protocol + '://' + req.get('host') + '/' + result.header;
     // send response
-    res.status(200).json({ url: req.protocol + '://' + req.get('host') + '/' + result.header });
+    res.status(200).json({ url: headerUrl });
   } catch (err) {
     if (!err.statusCode) {
       err.statusCode = 500;

@@ -313,9 +313,9 @@ exports.deleteNodeByUUID = async (req, res, next) => {
       // remove the file if it exists
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
+        // clean up any empty folders created by this deletion
+        fileData.cleanupDataDirectoryFromFilePath(filePath);
       }
-      // clean up any empty folders created by this deletion
-      fileData.cleanupDataDirectoryFromFilePath(filePath);
     }
     // delete associations
     context.deleteAssociations(nodeToDelete.id);
