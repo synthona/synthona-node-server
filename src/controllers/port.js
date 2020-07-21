@@ -116,7 +116,8 @@ exports.exportAllUserData = async (req, res, next) => {
             // append the associated file to the export
             archive.append(fs.createReadStream(node.preview), { name: node.uuid + extension });
           } catch (err) {
-            console.log(node.preview + ' error');
+            err.statusCode = 500;
+            throw err;
           }
         }
       }
@@ -355,10 +356,18 @@ exports.exportFromAnchorUUID = async (req, res, next) => {
         for (let leftNode of node.left) {
           if (leftNode.isFile) {
             let extension = leftNode.preview.substr(leftNode.preview.lastIndexOf('.'));
-            // append the associated file to the export
-            archive.append(fs.createReadStream(leftNode.preview), {
-              name: leftNode.uuid + extension,
-            });
+            // see if the file exists
+            if (fs.existsSync(leftNode.preview)) {
+              try {
+                // append the associated file to the export
+                archive.append(fs.createReadStream(leftNode.preview), {
+                  name: leftNode.uuid + extension,
+                });
+              } catch (err) {
+                err.statusCode = 500;
+                throw err;
+              }
+            }
           }
           exportJSON.push(leftNode);
           delete leftNode.dataValues.association;
@@ -370,10 +379,18 @@ exports.exportFromAnchorUUID = async (req, res, next) => {
         for (let rightNode of node.right) {
           if (rightNode.isFile) {
             let extension = rightNode.preview.substr(rightNode.preview.lastIndexOf('.'));
-            // append the associated file to the export
-            archive.append(fs.createReadStream(rightNode.preview), {
-              name: rightNode.uuid + extension,
-            });
+            // see if the file exists
+            if (fs.existsSync(rightNode.preview)) {
+              try {
+                // append the associated file to the export
+                archive.append(fs.createReadStream(rightNode.preview), {
+                  name: rightNode.uuid + extension,
+                });
+              } catch (err) {
+                err.statusCode = 500;
+                throw err;
+              }
+            }
           }
           exportJSON.push(rightNode);
           delete rightNode.dataValues.association;
@@ -385,10 +402,18 @@ exports.exportFromAnchorUUID = async (req, res, next) => {
       if (includeAnchorNode) {
         if (anchorNode.isFile) {
           let extension = anchorNode.preview.substr(anchorNode.preview.lastIndexOf('.'));
-          // append the associated file to the export
-          archive.append(fs.createReadStream(anchorNode.preview), {
-            name: anchorNode.uuid + extension,
-          });
+          // see if the file exists
+          if (fs.existsSync(anchorNode.preview)) {
+            try {
+              // append the associated file to the export
+              archive.append(fs.createReadStream(anchorNode.preview), {
+                name: anchorNode.uuid + extension,
+              });
+            } catch (err) {
+              err.statusCode = 500;
+              throw err;
+            }
+          }
         }
         exportJSON.push(anchorNode);
       }
