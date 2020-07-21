@@ -45,12 +45,12 @@ exports.signup = async (req, res, next) => {
     const token = tokens.generateToken(account);
     const refreshToken = tokens.generateRefreshToken(account);
     // set the jwt cookie
-    if (!process.env.PRODUCTION) {
+    if (process.env.PRODUCTION === 'true') {
       res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: true });
       res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: true });
     } else {
-      res.cookie('jwt', token);
-      res.cookie('refreshToken', refreshToken);
+      res.cookie('jwt', token, { httpOnly: true, sameSite: true });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: true });
     }
     // create node in the context system
     await context.createNode(account, 'user');
@@ -105,12 +105,12 @@ exports.login = async (req, res, next) => {
     const token = tokens.generateToken(account);
     const refreshToken = tokens.generateRefreshToken(account);
     // set the jwt cookie
-    if (!process.env.PRODUCTION) {
+    if (process.env.PRODUCTION === 'true') {
       res.cookie('jwt', token, { httpOnly: true, secure: true, sameSite: true });
       res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true, sameSite: true });
     } else {
-      res.cookie('jwt', token);
-      res.cookie('refreshToken', refreshToken);
+      res.cookie('jwt', token, { httpOnly: true, sameSite: true });
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: true });
     }
     // send response
     res.status(201).json({
@@ -169,12 +169,12 @@ exports.changePassword = async (req, res, next) => {
     const newToken = tokens.generateToken(result);
     const newRefreshToken = tokens.generateRefreshToken(account);
     // set the jwt cookie
-    if (!process.env.PRODUCTION) {
+    if (process.env.PRODUCTION === 'true') {
       res.cookie('jwt', newToken, { httpOnly: true, secure: true, sameSite: true });
       res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true, sameSite: true });
     } else {
-      res.cookie('jwt', newToken);
-      res.cookie('refreshToken', newRefreshToken);
+      res.cookie('jwt', newToken, { httpOnly: true, sameSite: true });
+      res.cookie('refreshToken', newRefreshToken, { httpOnly: true, sameSite: true });
     }
     // send the response
     res.sendStatus(200);
