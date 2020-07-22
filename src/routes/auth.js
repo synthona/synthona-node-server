@@ -52,8 +52,8 @@ router.put(
 router.put(
   '/login',
   [
-    body('email').exists().isEmail().normalizeEmail(),
-    body('password').trim().isString().isLength({ min: 5 }),
+    body('username').exists().trim().isString(),
+    body('password').exists().trim().isString().isLength({ min: 5 }),
   ],
   authController.login
 );
