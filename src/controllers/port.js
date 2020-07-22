@@ -137,6 +137,10 @@ exports.exportAllUserData = async (req, res, next) => {
     const userString = JSON.stringify(userData);
     // append a file containing the userData
     archive.append(userString, { name: '/db/user.json' });
+    // add a metadata file
+    const metadataString = JSON.stringify({ version: process.env.VERSION });
+    // append a file containing the metadata
+    archive.append(metadataString, { name: '/db/metadata.json' });
     // pipe archive data to the file
     archive.pipe(output);
     // finalize the archive (ie we are done appending files but streams have to finish yet)
@@ -422,6 +426,10 @@ exports.exportFromAnchorUUID = async (req, res, next) => {
     const nodeString = JSON.stringify(exportJSON);
     // append a file containing the nodeData
     archive.append(nodeString, { name: '/db/nodes.json' });
+    // add a metadata file
+    const metadataString = JSON.stringify({ version: process.env.VERSION });
+    // append a file containing the metadata
+    archive.append(metadataString, { name: '/db/metadata.json' });
     // pipe archive data to the file
     archive.pipe(output);
     // finalize the archive (ie we are done appending files but streams have to finish yet)
