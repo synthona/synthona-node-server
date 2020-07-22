@@ -12,8 +12,6 @@ var admZip = require('adm-zip');
 
 // generate a data export for this user
 exports.exportAllUserData = async (req, res, next) => {
-  // this comes from the is-auth middleware
-  const userId = req.user.uid;
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -23,6 +21,8 @@ exports.exportAllUserData = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
+    // this comes from the is-auth middleware
+    const userId = req.user.uid;
     // generate export directory if it does not exist
     if (!fs.existsSync('data/' + userId + '/exports/')) {
       fs.mkdirSync('data/' + userId + '/exports/');
@@ -436,8 +436,6 @@ exports.exportFromAnchorUUID = async (req, res, next) => {
 };
 
 exports.unpackSynthonaImport = async (req, res, next) => {
-  // this comes from the is-auth middleware
-  const userId = req.user.uid;
   try {
     // catch validation errors
     const errors = validationResult(req);
@@ -447,6 +445,8 @@ exports.unpackSynthonaImport = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
+    // this comes from the is-auth middleware
+    const userId = req.user.uid;
     // generate user data directory if it does not exist
     if (!fs.existsSync(__basedir + '/data/' + userId)) {
       fs.mkdirSync(__basedir + '/data/' + userId);
@@ -648,6 +648,47 @@ exports.unpackSynthonaImport = async (req, res, next) => {
         where: {
           uuid: packageUUID,
         },
+      }
+    );
+    // send response
+    res.sendStatus(200);
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};
+
+exports.removeSynthonaImportsByPackage = async (req, res, next) => {
+  try {
+    // catch validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      const error = new Error('Validation Failed');
+      error.statusCode = 422;
+      error.data = errors.array();
+      throw error;
+    }
+    // this comes from the is-auth middleware
+    const uid = req.user.uid;
+    // uuid of the import package node
+    const packageUUID = req.body.uuid;
+    // remove all the nodes and associations created by this package
+    await node.destroy({
+      where: {
+        [Op.and]: [{ importId: packageUUID }, { creator: uid }],
+      },
+    });
+    await association.destroy({
+      where: { [Op.and]: [{ importId: packageUUID }, { creator: uid }] },
+    });
+    await node.update(
+      {
+        metadata: null,
+      },
+      {
+        where: { [Op.and]: [{ uuid: packageUUID }, { creator: uid }] },
       }
     );
     // send response

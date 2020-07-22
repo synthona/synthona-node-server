@@ -105,6 +105,7 @@ exports.getNodeByUUID = async (req, res, next) => {
         'hidden',
         'searchable',
         'comment',
+        'metadata',
         'type',
         'name',
         'preview',
