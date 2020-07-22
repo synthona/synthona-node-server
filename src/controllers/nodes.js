@@ -247,8 +247,10 @@ exports.searchNodes = async (req, res, next) => {
       // in an open request do not return hidden items
       whereStatement.hidden = { [Op.not]: true };
     }
+    // exclude user nodes from the explore page for now
+    whereStatement.type = { [Op.not]: 'user' };
+    // make sure the only nodes retrieved are from the logged in user
     whereStatement.creator = userId;
-
     // get the total node count
     const data = await node.findAndCountAll({
       where: whereStatement,
