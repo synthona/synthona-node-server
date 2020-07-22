@@ -53,7 +53,18 @@ exports.signup = async (req, res, next) => {
       res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: true });
     }
     // create node in the context system
-    await context.createNode(account, 'user');
+    await node.create({
+      isFile: true,
+      type: 'user',
+      hidden: false,
+      searchable: true,
+      name: account.displayName,
+      preview: account.avatar,
+      path: account.avatar,
+      comment: account.username,
+      content: account.bio,
+      creator: account.id,
+    });
     // send the response
     res.status(201).json({
       email: account.email,

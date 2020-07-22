@@ -103,28 +103,45 @@ exports.setUserInfo = async (req, res, next) => {
       error.data = errors.array();
       throw error;
     }
+    // uid from auth token
+    const uid = req.user.uid;
     // process request
     const username = req.body.username;
     // load user
-    const userNode = await user.findOne({
-      where: { username },
+    const profile = await user.findOne({
+      where: { username, id: uid },
     });
     // check for errors
-    if (!userNode) {
+    if (!profile) {
       const error = new Error('Could not find user');
       error.statusCode = 404;
       throw error;
     }
     // update any values that have been changed
-    userNode.displayName = req.body.displayName ? req.body.displayName : userNode.displayName;
-    userNode.bio = req.body.bio ? req.body.bio : userNode.bio;
-    const result = await userNode.save();
+    profile.displayName = req.body.displayName ? req.body.displayName : profile.displayName;
+    profile.bio = req.body.bio ? req.body.bio : profile.bio;
+    const result = await profile.save();
+    // update the associated user node if necessary
+    if (req.body.bio || req.body.displayName) {
+      await node.update(
+        {
+          name: result.displayName,
+          content: result.bio,
+        },
+        {
+          where: {
+            creator: uid,
+            type: 'user',
+          },
+        }
+      );
+    }
     // add server info to image urls
-    userNode.avatar = userNode.avatar
-      ? req.protocol + '://' + req.get('host') + '/' + userNode.avatar
+    profile.avatar = profile.avatar
+      ? req.protocol + '://' + req.get('host') + '/' + profile.avatar
       : null;
-    userNode.header = userNode.header
-      ? req.protocol + '://' + req.get('host') + '/' + userNode.header
+    profile.header = profile.header
+      ? req.protocol + '://' + req.get('host') + '/' + profile.header
       : null;
     // return result
     res.status(200).json({ user: result });
@@ -163,6 +180,20 @@ exports.setUsername = async (req, res, next) => {
     // update any values that have been changed
     userNode.username = username ? username : userNode.username;
     const result = await userNode.save();
+    // update the associated user node if necessary
+    if (req.body.username) {
+      await node.update(
+        {
+          comment: result.username,
+        },
+        {
+          where: {
+            creator: uid,
+            type: 'user',
+          },
+        }
+      );
+    }
     // add server info to image urls
     userNode.avatar = userNode.avatar
       ? req.protocol + '://' + req.get('host') + '/' + userNode.avatar
@@ -235,11 +266,11 @@ exports.setAvatar = async (req, res, next) => {
       throw error;
     }
     // this comes from the is-auth middleware
-    const userId = req.user.uid;
+    const uid = req.user.uid;
     // process request
     const imageUrl = req.file.path;
     // load user
-    const userNode = await user.findByPk(userId);
+    const userNode = await user.findByPk(uid);
     // check for errors
     if (!userNode) {
       const error = new Error('Could not find user');
@@ -257,6 +288,19 @@ exports.setAvatar = async (req, res, next) => {
     // update the header url
     userNode.avatar = imageUrl;
     const result = await userNode.save();
+    // update the associated user node
+    await node.update(
+      {
+        preview: result.avatar,
+        path: result.avatar,
+      },
+      {
+        where: {
+          creator: uid,
+          type: 'user',
+        },
+      }
+    );
     const avatarUrl = req.protocol + '://' + req.get('host') + '/' + result.avatar;
     // send response
     res.status(200).json({ url: avatarUrl });
@@ -279,11 +323,11 @@ exports.setHeader = async (req, res, next) => {
       throw error;
     }
     // this comes from the is-auth middleware
-    const userId = req.user.uid;
+    const uid = req.user.uid;
     // process request
     const imageUrl = req.file.path;
     // load user
-    const userNode = await user.findByPk(userId);
+    const userNode = await user.findByPk(uid);
     // check for errors
     if (!userNode) {
       const error = new Error('Could not find user');
