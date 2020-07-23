@@ -8,7 +8,7 @@ const bcrypt = require('bcryptjs');
 // custom code
 const tokens = require('../util/tokens');
 // bring in data models.
-const { user } = require('../db/models');
+const { user, node } = require('../db/models');
 
 exports.signup = async (req, res, next) => {
   try {
