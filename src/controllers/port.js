@@ -455,12 +455,23 @@ exports.unpackSynthonaImport = async (req, res, next) => {
     }
     // this comes from the is-auth middleware
     const userId = req.user.uid;
+    // uuid of the import package node
+    const packageUUID = req.body.uuid;
+    // mark the import package as expanded so undo is possible even if the operation fails
+    node.update(
+      {
+        metadata: { expanded: true },
+      },
+      {
+        where: {
+          uuid: packageUUID,
+        },
+      }
+    );
     // generate user data directory if it does not exist
     if (!fs.existsSync(__basedir + '/data/' + userId)) {
       fs.mkdirSync(__basedir + '/data/' + userId);
     }
-    // uuid of the import package node
-    const packageUUID = req.body.uuid;
     // fetch the package node from the DB
     const packageNode = await node.findOne({
       where: { [Op.and]: [{ uuid: packageUUID }, { creator: userId }] },
@@ -498,18 +509,22 @@ exports.unpackSynthonaImport = async (req, res, next) => {
           // if it's not a file just generate the node
           if (!nodeImport.isFile) {
             // generate node
-            newNode = await node.create({
-              isFile: nodeImport.isFile,
-              hidden: nodeImport.hidden,
-              searchable: nodeImport.searchable,
-              type: nodeImport.type,
-              name: nodeImport.name,
-              preview: nodeImport.preview,
-              content: nodeImport.content,
-              creator: userId,
-              createdAt: nodeImport.createdAt,
-              importId: packageUUID,
-            });
+            newNode = await node.create(
+              {
+                isFile: nodeImport.isFile,
+                hidden: nodeImport.hidden,
+                searchable: nodeImport.searchable,
+                type: nodeImport.type,
+                name: nodeImport.name,
+                preview: nodeImport.preview,
+                content: nodeImport.content,
+                creator: userId,
+                createdAt: nodeImport.createdAt,
+                updatedAt: nodeImport.updatedAt,
+                importId: packageUUID,
+              },
+              { silent: true }
+            );
           } else {
             // load the fileEntry
             let extension = nodeImport.preview.substr(nodeImport.preview.lastIndexOf('.'));
@@ -518,64 +533,49 @@ exports.unpackSynthonaImport = async (req, res, next) => {
             // create a hash of the filename
             const nameHash = crypto.createHash('md5').update(fileEntry.name).digest('hex');
             // generate directories
-            if (
-              !fs.existsSync(
-                __basedir +
-                  '/data/' +
-                  userId +
-                  '/' +
-                  nameHash.substring(0, 3) +
-                  '/' +
-                  nameHash.substring(3, 6)
-              )
-            ) {
-              // if new directories are needed generate them
-              fs.mkdirSync(__basedir + '/data/' + userId + '/' + nameHash.substring(0, 3));
-              fs.mkdirSync(
-                __basedir +
-                  '/data/' +
-                  userId +
-                  '/' +
-                  nameHash.substring(0, 3) +
-                  '/' +
-                  nameHash.substring(3, 6)
-              );
+            const directoryLayer1 = __basedir + '/data/' + userId + '/' + nameHash.substring(0, 3);
+            const directoryLayer2 =
+              __basedir +
+              '/data/' +
+              userId +
+              '/' +
+              nameHash.substring(0, 3) +
+              '/' +
+              nameHash.substring(3, 6);
+            // if new directories are needed generate them
+            if (!fs.existsSync(directoryLayer2)) {
+              if (!fs.existsSync(directoryLayer1)) {
+                fs.mkdirSync(directoryLayer1);
+              }
+              fs.mkdirSync(directoryLayer2);
             }
             //extract file to the generated directory
-            zip.extractEntryTo(
-              fileEntry,
-              __basedir +
-                '/data/' +
-                userId +
-                '/' +
-                nameHash.substring(0, 3) +
-                '/' +
-                nameHash.substring(3, 6) +
-                '/',
-              false,
-              true
-            );
+            zip.extractEntryTo(fileEntry, directoryLayer2, false, true);
             // generate node
-            newNode = await node.create({
-              isFile: nodeImport.isFile,
-              hidden: nodeImport.hidden,
-              searchable: nodeImport.searchable,
-              type: nodeImport.type,
-              name: nodeImport.name,
-              preview:
-                'data/' +
-                userId +
-                '/' +
-                nameHash.substring(0, 3) +
-                '/' +
-                nameHash.substring(3, 6) +
-                '/' +
-                fileEntry.name,
-              content: nodeImport.content,
-              creator: userId,
-              createdAt: nodeImport.createdAt,
-              importId: packageUUID,
-            });
+            newNode = await node.create(
+              {
+                isFile: nodeImport.isFile,
+                hidden: nodeImport.hidden,
+                searchable: nodeImport.searchable,
+                type: nodeImport.type,
+                name: nodeImport.name,
+                preview:
+                  'data/' +
+                  userId +
+                  '/' +
+                  nameHash.substring(0, 3) +
+                  '/' +
+                  nameHash.substring(3, 6) +
+                  '/' +
+                  fileEntry.name,
+                content: nodeImport.content,
+                creator: userId,
+                createdAt: nodeImport.createdAt,
+                updatedAt: nodeImport.updatedAt,
+                importId: packageUUID,
+              },
+              { silent: true }
+            );
           }
           // if the node in question has associations, process them
           if (nodeImport.original) {
@@ -585,19 +585,22 @@ exports.unpackSynthonaImport = async (req, res, next) => {
               // nodeId and nodeUUID to the new values. linkedNode
               // and linkedNodeUUID will temporarily have the wrong values. this will
               // be corrected at a second pass later in the import
-              await association.create({
-                nodeId: newNode.id,
-                nodeUUID: newNode.uuid,
-                nodeType: newNode.type,
-                linkedNode: associationImport.linkedNode,
-                linkedNodeUUID: associationImport.linkedNodeUUID,
-                linkedNodeType: associationImport.linkedNodeType,
-                linkStrength: associationImport.linkStrength,
-                creator: userId,
-                importId: packageUUID,
-                createdAt: associationImport.createdAt,
-                updatedAt: associationImport.updatedAt,
-              });
+              await association.create(
+                {
+                  nodeId: newNode.id,
+                  nodeUUID: newNode.uuid,
+                  nodeType: newNode.type,
+                  linkedNode: associationImport.linkedNode,
+                  linkedNodeUUID: associationImport.linkedNodeUUID,
+                  linkedNodeType: associationImport.linkedNodeType,
+                  linkStrength: associationImport.linkStrength,
+                  creator: userId,
+                  importId: packageUUID,
+                  createdAt: associationImport.createdAt,
+                  updatedAt: associationImport.updatedAt,
+                },
+                { silent: true }
+              );
             }
           }
           // store the old and new UUIDs and IDs here to be re-processed
@@ -625,7 +628,8 @@ exports.unpackSynthonaImport = async (req, res, next) => {
                   { importId: packageUUID },
                 ],
               },
-            }
+            },
+            { silent: true }
           );
         }
       } else if (entry.name === 'user.json') {
@@ -647,10 +651,10 @@ exports.unpackSynthonaImport = async (req, res, next) => {
         );
       }
     }
-    // mark the import package as expanded
+    // mark the import package as successfully expanded
     node.update(
       {
-        metadata: { expanded: true },
+        metadata: { expanded: true, success: true },
       },
       {
         where: {

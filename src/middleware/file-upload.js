@@ -14,22 +14,18 @@ const fileStorage = multer.diskStorage({
     // create a hash of the filename
     file.hash = crypto.createHash('md5').update(file.originalname).digest('hex');
     // generate directories
-    if (
-      !fs.existsSync(
-        'data/' + req.user.uid + '/' + file.hash.substring(0, 3) + '/' + file.hash.substring(3, 6)
-      )
-    ) {
-      // if new directories are needed generate them
-      fs.mkdirSync('data/' + req.user.uid + '/' + file.hash.substring(0, 3));
-      fs.mkdirSync(
-        'data/' + req.user.uid + '/' + file.hash.substring(0, 3) + '/' + file.hash.substring(3, 6)
-      );
+    const directoryLayer1 = 'data/' + req.user.uid + '/' + file.hash.substring(0, 3);
+    const directoryLayer2 =
+      'data/' + req.user.uid + '/' + file.hash.substring(0, 3) + '/' + file.hash.substring(3, 6);
+    // if new directories are needed generate them
+    if (!fs.existsSync(directoryLayer2)) {
+      if (!fs.existsSync(directoryLayer1)) {
+        fs.mkdirSync(directoryLayer1);
+      }
+      fs.mkdirSync(directoryLayer2);
     }
     // second param is storage location
-    cb(
-      null,
-      'data/' + req.user.uid + '/' + file.hash.substring(0, 3) + '/' + file.hash.substring(3, 6)
-    );
+    cb(null, directoryLayer2);
   },
   filename: (req, file, cb) => {
     // second param is file name
