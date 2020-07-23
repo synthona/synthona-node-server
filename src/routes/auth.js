@@ -52,7 +52,7 @@ router.put(
 router.put(
   '/login',
   [
-    body('username').exists().trim().isString(),
+    body('email').exists().isEmail().normalizeEmail(),
     body('password').exists().trim().isString().isLength({ min: 5 }),
   ],
   authController.login

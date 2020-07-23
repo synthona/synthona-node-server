@@ -93,15 +93,15 @@ exports.login = async (req, res, next) => {
       throw error;
     }
     // process request
-    const username = req.body.username;
+    const email = req.body.email;
     const password = req.body.password;
     // retrieve account
     const account = await user.findOne({
-      where: { username: username },
+      where: { email: email },
     });
     // catch error if no account is found
     if (!account) {
-      const error = new Error('A user with this username could not be found');
+      const error = new Error('A user with this email could not be found');
       error.statusCode = 401;
       throw error;
     }
