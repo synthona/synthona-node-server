@@ -228,7 +228,6 @@ exports.searchNodes = async (req, res, next) => {
 
     // create WHERE statement
     var whereStatement = {};
-    if (type) whereStatement.type = type;
     if (searchQuery) {
       whereStatement[Op.or] = [
         {
@@ -249,6 +248,7 @@ exports.searchNodes = async (req, res, next) => {
     }
     // exclude user nodes from the explore page for now
     whereStatement.type = { [Op.not]: 'user' };
+    if (type) whereStatement.type = type;
     // make sure the only nodes retrieved are from the logged in user
     whereStatement.creator = userId;
     // get the total node count
