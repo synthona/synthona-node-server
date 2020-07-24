@@ -13,7 +13,6 @@ module.exports = (sequelize, DataTypes) => {
       nodeId: {
         type: DataTypes.INTEGER,
         comment: 'The Node which is being associated',
-        unique: false,
       },
       nodeUUID: {
         type: DataTypes.UUID,
@@ -27,7 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       linkedNode: {
         type: DataTypes.INTEGER,
         comment: 'the node being linked to',
-        unique: false,
       },
       linkedNodeUUID: {
         type: DataTypes.UUID,
